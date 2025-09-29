@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %> | Planora Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Planora Admin</h2>
+      </div>
+      <ul class="menu">
+        <li><a href="/admin/dashboard"><i class="fa fa-home"></i> Dashboard</a></li>
+        <li><a href="/admin/users"><i class="fa fa-users"></i> Người dùng</a></li>
+        <li><a href="/admin/shops"><i class="fa fa-store"></i> Shop</a></li>
+        <li><a href="/admin/services"><i class="fa fa-cogs"></i> Dịch vụ</a></li>
+        <li><a href="/admin/orders"><i class="fa fa-shopping-cart"></i> Đơn thuê</a></li>
+        <li><a href="/admin/reports"><i class="fa fa-chart-line"></i> Báo cáo</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <header class="topbar">
+        <h1><%= title %></h1>
+      </header>
+      <section class="content">
+        <%- body %>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

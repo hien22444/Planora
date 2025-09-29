@@ -1,0 +1,57 @@
+
+<div class="report-management">
+  <h2 style="margin-bottom:18px;"><i class="fa fa-chart-line"></i> Báo cáo & Thống kê</h2>
+  <div class="report-summary" style="margin-bottom:24px;">
+    <h3>Doanh thu nền tảng: 22,500,000 VNĐ</h3>
+    <h4>Dịch vụ thuê nhiều nhất: Dịch vụ 1</h4>
+    <h4>Khách hàng mới: 120</h4>
+    <h4>Khách hàng quay lại: 45</h4>
+  </div>
+  <form method="POST" action="#" style="margin-bottom:24px;display:flex;gap:10px;">
+    <select name="type" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;">
+      <option value="excel">Xuất Excel</option>
+      <option value="pdf">Xuất PDF</option>
+    </select>
+    <button type="submit" style="padding:8px 18px;border-radius:8px;background:#3b5998;color:#fff;border:none;">Xuất báo cáo</button>
+  </form>
+  <div class="report-charts">
+    <canvas id="shopRevenueChart" style="max-width:100%;height:220px;background:#fff;border-radius:12px;"></canvas>
+    <canvas id="serviceChart" style="max-width:100%;height:220px;background:#fff;border-radius:12px;margin-top:24px;"></canvas>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Demo dữ liệu biểu đồ
+  const shopRevenueLabels = ['Shop ABC', 'Shop XYZ', 'Shop QWE'];
+  const shopRevenueData = [12000000, 8500000, 2500000];
+  const serviceLabels = ['Dịch vụ 1', 'Dịch vụ 2', 'Dịch vụ 3'];
+  const serviceData = [80, 45, 30];
+
+  const shopRevenueCtx = document.getElementById('shopRevenueChart').getContext('2d');
+  new Chart(shopRevenueCtx, {
+    type: 'bar',
+    data: {
+      labels: shopRevenueLabels,
+      datasets: [{
+        label: 'Doanh thu Shop',
+        data: shopRevenueData,
+        backgroundColor: 'rgba(54,162,235,0.5)',
+        borderColor: 'blue',
+        borderWidth: 1
+      }]
+    }
+  });
+
+  const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+  new Chart(serviceCtx, {
+    type: 'pie',
+    data: {
+      labels: serviceLabels,
+      datasets: [{
+        label: 'Dịch vụ thuê nhiều',
+        data: serviceData,
+        backgroundColor: ['#ff9800','#3b5998','#5bc0de'],
+      }]
+    }
+  });
+</script>
