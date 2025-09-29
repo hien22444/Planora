@@ -1,0 +1,48 @@
+
+<div class="order-management">
+  <h2 style="margin-bottom:18px;"><i class="fa fa-shopping-cart"></i> Quản lý Đơn thuê</h2>
+  <form class="order-filter-form" style="margin-bottom:18px;display:flex;gap:10px;">
+    <select name="status" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;">
+      <option value="">Tất cả</option>
+      <option value="pending">Chờ xác nhận</option>
+      <option value="processing">Đang xử lý</option>
+      <option value="completed">Hoàn tất</option>
+      <option value="cancelled">Đã hủy</option>
+    </select>
+    <button type="submit" style="padding:8px 18px;border-radius:8px;background:#3b5998;color:#fff;border:none;">Lọc</button>
+  </form>
+  <table class="order-table" style="width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+    <thead style="background:#f5f6fa;">
+      <tr>
+        <th style="padding:12px;">Mã đơn</th>
+        <th style="padding:12px;">Khách hàng</th>
+        <th style="padding:12px;">Shop</th>
+        <th style="padding:12px;">Dịch vụ</th>
+        <th style="padding:12px;">Trạng thái</th>
+        <th style="padding:12px;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding:12px;">DH001</td>
+        <td style="padding:12px;">Nguyễn Văn A</td>
+        <td style="padding:12px;">Shop ABC</td>
+        <td style="padding:12px;">Dịch vụ 1</td>
+        <td style="padding:12px;">Chờ xác nhận</td>
+        <td style="padding:12px;">
+          <button style="padding:6px 12px;border-radius:6px;background:#d9534f;color:#fff;border:none;">Xử lý tranh chấp</button>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px;">DH002</td>
+        <td style="padding:12px;">Trần Thị B</td>
+        <td style="padding:12px;">Shop XYZ</td>
+        <td style="padding:12px;">Dịch vụ 2</td>
+        <td style="padding:12px;">Hoàn tất</td>
+        <td style="padding:12px;">
+          <button style="padding:6px 12px;border-radius:6px;background:#d9534f;color:#fff;border:none;">Xử lý tranh chấp</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,39 @@
+
+<div class="user-management">
+  <h2 style="margin-bottom:18px;"><i class="fa fa-users"></i> Quản lý Người dùng</h2>
+  <form class="user-search-form" style="margin-bottom:18px;display:flex;gap:10px;">
+    <input type="text" name="search" placeholder="Tìm tên hoặc email" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;">
+    <button type="submit" style="padding:8px 18px;border-radius:8px;background:#3b5998;color:#fff;border:none;">Tìm kiếm</button>
+  </form>
+  <table class="user-table" style="width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
+    <thead style="background:#f5f6fa;">
+      <tr>
+        <th style="padding:12px;">Tên</th>
+        <th style="padding:12px;">Email</th>
+        <th style="padding:12px;">Trạng thái</th>
+        <th style="padding:12px;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding:12px;">Nguyễn Văn A</td>
+        <td style="padding:12px;">vana@example.com</td>
+        <td style="padding:12px;">Hoạt động</td>
+        <td style="padding:12px;">
+          <button style="padding:6px 12px;border-radius:6px;background:#f0ad4e;color:#fff;border:none;">Khóa</button>
+          <button style="padding:6px 12px;border-radius:6px;background:#5bc0de;color:#fff;border:none;">Sửa</button>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px;">Trần Thị B</td>
+        <td style="padding:12px;">thib@example.com</td>
+        <td style="padding:12px;">Đã khóa</td>
+        <td style="padding:12px;">
+          <button style="padding:6px 12px;border-radius:6px;background:#5cb85c;color:#fff;border:none;">Mở khóa</button>
+          <button style="padding:6px 12px;border-radius:6px;background:#5bc0de;color:#fff;border:none;">Sửa</button>
+        </td>
+      </tr>
+      <!-- Thêm các dòng mẫu khác nếu muốn -->
+    </tbody>
+  </table>
+</div>
