@@ -1,0 +1,151 @@
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+            <span class="text-muted">Xin chào, <%= user.fullName %>!</span>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">Đơn hàng</h4>
+                        <p class="card-text">Tổng đơn hàng</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">Hoàn thành</h4>
+                        <p class="card-text">Đơn đã hoàn thành</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">Đang xử lý</h4>
+                        <p class="card-text">Đơn đang xử lý</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">Đánh giá</h4>
+                        <p class="card-text">Đánh giá đã gửi</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-star fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>Đơn hàng gần đây</h5>
+            </div>
+            <div class="card-body">
+                <% if (recentOrders && recentOrders.length > 0) { %>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Shop</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% recentOrders.forEach(order => { %>
+                                    <tr>
+                                        <td><%= order._id.toString().slice(-8) %></td>
+                                        <td><%= order.shop.shopName %></td>
+                                        <td><%= order.totalAmount.toLocaleString() %> VNĐ</td>
+                                        <td>
+                                            <span class="badge bg-<%= order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'info' %>">
+                                                <%= order.status === 'pending' ? 'Chờ xử lý' : 
+                                                    order.status === 'confirmed' ? 'Đã xác nhận' :
+                                                    order.status === 'in_progress' ? 'Đang xử lý' :
+                                                    order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy' %>
+                                            </span>
+                                        </td>
+                                        <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                        <td>
+                                            <a href="/customer/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Bạn chưa có đơn hàng nào</p>
+                        <a href="/customer/services" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Tìm dịch vụ
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/customer/services" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Tìm dịch vụ
+                    </a>
+                    <a href="/customer/cart" class="btn btn-outline-primary">
+                        <i class="fas fa-shopping-cart me-2"></i>Giỏ hàng
+                    </a>
+                    <a href="/customer/orders" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>Xem tất cả đơn hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

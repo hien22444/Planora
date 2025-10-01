@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Redirect</title>
+</head>
+<body>
+    <h1>Test Redirect</h1>
+    <p>User: <%= user ? user.fullName : 'Not logged in' %></p>
+    <p>Role: <%= user ? user.role : 'No role' %></p>
+    <p>Email Verified: <%= user ? user.isEmailVerified : 'N/A' %></p>
+    
+    <h2>Test Links:</h2>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/admin/dashboard">Admin Dashboard</a></li>
+        <li><a href="/customer/dashboard">Customer Dashboard</a></li>
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Register</a></li>
+    </ul>
+</body>
+</html>

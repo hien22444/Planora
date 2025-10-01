@@ -1,0 +1,137 @@
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-list me-2"></i>Lịch sử đơn hàng</h2>
+            <div class="d-flex gap-2">
+                <select class="form-select" style="width: auto;" onchange="filterOrders(this.value)">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="in_progress">Đang xử lý</option>
+                    <option value="completed">Hoàn thành</option>
+                    <option value="cancelled">Đã hủy</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% if (orders && orders.length > 0) { %>
+    <div class="row">
+        <% orders.forEach(order => { %>
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Đơn hàng #<%= order._id.toString().slice(-8) %></h6>
+                            <small class="text-muted">Ngày đặt: <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></small>
+                        </div>
+                        <div>
+                            <span class="badge bg-<%= order.status === 'completed' ? 'success' : 
+                                order.status === 'pending' ? 'warning' : 
+                                order.status === 'cancelled' ? 'danger' : 'info' %> fs-6">
+                                <%= order.status === 'pending' ? 'Chờ xử lý' : 
+                                    order.status === 'confirmed' ? 'Đã xác nhận' :
+                                    order.status === 'in_progress' ? 'Đang xử lý' :
+                                    order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy' %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6><i class="fas fa-store me-2"></i><%= order.shop.shopName %></h6>
+                                <div class="mb-3">
+                                    <strong>Dịch vụ:</strong>
+                                    <ul class="list-unstyled mt-2">
+                                        <% order.services.forEach(service => { %>
+                                            <li class="d-flex justify-content-between">
+                                                <span><%= service.service.name %> x <%= service.quantity %></span>
+                                                <span><%= (service.price * service.quantity).toLocaleString() %> VNĐ</span>
+                                            </li>
+                                        <% }) %>
+                                    </ul>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong><i class="fas fa-calendar me-2"></i>Ngày sự kiện:</strong><br>
+                                        <%= new Date(order.eventDate).toLocaleDateString('vi-VN') %></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong><i class="fas fa-map-marker-alt me-2"></i>Địa điểm:</strong><br>
+                                        <%= order.eventLocation %></p>
+                                    </div>
+                                </div>
+                                
+                                <% if (order.notes) { %>
+                                    <p><strong><i class="fas fa-sticky-note me-2"></i>Ghi chú:</strong><br>
+                                    <%= order.notes %></p>
+                                <% } %>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="text-end">
+                                    <h5 class="text-primary mb-3">
+                                        <%= order.totalAmount.toLocaleString() %> VNĐ
+                                    </h5>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewOrderDetails('<%= order._id %>')">
+                                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                        </button>
+                                        
+                                        <% if (order.status === 'pending') { %>
+                                            <form action="/customer/orders/<%= order._id %>/cancel" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                        onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
+                                                    <i class="fas fa-times me-1"></i>Hủy đơn
+                                                </button>
+                                            </form>
+                                        <% } %>
+                                        
+                                        <% if (order.status === 'completed') { %>
+                                            <a href="/customer/reviews/<%= order._id %>" class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-star me-1"></i>Đánh giá
+                                            </a>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+<% } else { %>
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Chưa có đơn hàng nào</h4>
+                <p class="text-muted">Hãy bắt đầu thuê dịch vụ đầu tiên của bạn</p>
+                <a href="/customer/services" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Tìm dịch vụ
+                </a>
+            </div>
+        </div>
+    </div>
+<% } %>
+
+<script>
+function filterOrders(status) {
+    const url = new URL(window.location);
+    if (status) {
+        url.searchParams.set('status', status);
+    } else {
+        url.searchParams.delete('status');
+    }
+    window.location.href = url.toString();
+}
+
+function viewOrderDetails(orderId) {
+    // Implement order details modal or redirect
+    console.log('View order details:', orderId);
+}
+</script>

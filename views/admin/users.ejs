@@ -1,39 +1,135 @@
-
-<div class="user-management">
-  <h2 style="margin-bottom:18px;"><i class="fa fa-users"></i> Quản lý Người dùng</h2>
-  <form class="user-search-form" style="margin-bottom:18px;display:flex;gap:10px;">
-    <input type="text" name="search" placeholder="Tìm tên hoặc email" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;">
-    <button type="submit" style="padding:8px 18px;border-radius:8px;background:#3b5998;color:#fff;border:none;">Tìm kiếm</button>
-  </form>
-  <table class="user-table" style="width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
-    <thead style="background:#f5f6fa;">
-      <tr>
-        <th style="padding:12px;">Tên</th>
-        <th style="padding:12px;">Email</th>
-        <th style="padding:12px;">Trạng thái</th>
-        <th style="padding:12px;">Hành động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td style="padding:12px;">Nguyễn Văn A</td>
-        <td style="padding:12px;">vana@example.com</td>
-        <td style="padding:12px;">Hoạt động</td>
-        <td style="padding:12px;">
-          <button style="padding:6px 12px;border-radius:6px;background:#f0ad4e;color:#fff;border:none;">Khóa</button>
-          <button style="padding:6px 12px;border-radius:6px;background:#5bc0de;color:#fff;border:none;">Sửa</button>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:12px;">Trần Thị B</td>
-        <td style="padding:12px;">thib@example.com</td>
-        <td style="padding:12px;">Đã khóa</td>
-        <td style="padding:12px;">
-          <button style="padding:6px 12px;border-radius:6px;background:#5cb85c;color:#fff;border:none;">Mở khóa</button>
-          <button style="padding:6px 12px;border-radius:6px;background:#5bc0de;color:#fff;border:none;">Sửa</button>
-        </td>
-      </tr>
-      <!-- Thêm các dòng mẫu khác nếu muốn -->
-    </tbody>
-  </table>
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-users me-2"></i>Quản lý người dùng</h2>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="fas fa-plus me-1"></i>Thêm người dùng
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/admin/users">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="role" class="form-label">Vai trò</label>
+                    <select class="form-select" id="role" name="role">
+                        <option value="">Tất cả</option>
+                        <option value="customer" <%= currentRole === 'customer' ? 'selected' : '' %>>Khách hàng</option>
+                        <option value="shop" <%= currentRole === 'shop' ? 'selected' : '' %>>Shop</option>
+                        <option value="admin" <%= currentRole === 'admin' ? 'selected' : '' %>>Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="active" <%= currentStatus === 'active' ? 'selected' : '' %>>Hoạt động</option>
+                        <option value="inactive" <%= currentStatus === 'inactive' ? 'selected' : '' %>>Bị khóa</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" id="search" name="search" value="<%= currentSearch || '' %>" placeholder="Tên, email, username...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Thông tin</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (users && users.length > 0) { %>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td>
+                                    <% if (user.avatar) { %>
+                                        <img src="<%= user.avatar %>" alt="Avatar" class="rounded-circle" width="40" height="40">
+                                    <% } else { %>
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <%= user.fullName.charAt(0).toUpperCase() %>
+                                        </div>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><%= user.fullName %></strong>
+                                        <br>
+                                        <small class="text-muted"><%= user.email %></small>
+                                        <br>
+                                        <small class="text-muted"><%= user.phone %></small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<%= user.role === 'admin' ? 'danger' : user.role === 'shop' ? 'warning' : 'info' %>">
+                                        <%= user.role === 'admin' ? 'Admin' : user.role === 'shop' ? 'Shop' : 'Khách hàng' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<%= user.isActive ? 'success' : 'danger' %>">
+                                        <%= user.isActive ? 'Hoạt động' : 'Bị khóa' %>
+                                    </span>
+                                </td>
+                                <td><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewUser('<%= user._id %>')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <form action="/admin/users/<%= user._id %>/toggle-status" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-<%= user.isActive ? 'danger' : 'success' %> btn-sm" 
+                                                    onclick="return confirm('Bạn có chắc muốn <%= user.isActive ? 'khóa' : 'mở khóa' %> tài khoản này?')">
+                                                <i class="fas fa-<%= user.isActive ? 'lock' : 'unlock' %>"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Không có người dùng nào</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewUser(userId) {
+    // Implement view user details
+    console.log('View user:', userId);
+}
+</script>
