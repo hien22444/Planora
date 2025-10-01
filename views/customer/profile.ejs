@@ -1,0 +1,180 @@
+<style>
+    .profile-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .avatar-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 30px;
+        text-align: center;
+    }
+    .avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 2rem;
+        color: #667eea;
+    }
+</style>
+
+<!-- Header -->
+<div class="bg-primary text-white py-4">
+    <div class="container">
+        <h1 class="h3 mb-0"><i class="fas fa-user me-2"></i>Thông tin cá nhân</h1>
+    </div>
+</div>
+
+    <div class="container my-5">
+        <!-- Flash Messages -->
+        <% if (typeof messages !== 'undefined' && messages.error) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= messages.error %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+        <% if (typeof messages !== 'undefined' && messages.success) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= messages.success %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <% } %>
+        
+        <div class="row">
+            <!-- Profile Info -->
+            <div class="col-lg-4">
+                <div class="card profile-card">
+                    <div class="avatar-section">
+                        <div class="avatar">
+                            <% if (user && user.avatar) { %>
+                                <img src="<%= user.avatar %>" alt="Avatar" class="img-fluid rounded-circle">
+                            <% } else { %>
+                                <i class="fas fa-user"></i>
+                            <% } %>
+                        </div>
+                        <h4><%= user ? user.fullName : 'Khách hàng' %></h4>
+                        <p class="mb-0">Khách hàng</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h5 class="text-primary mb-1">0</h5>
+                                <small class="text-muted">Đơn hàng</small>
+                            </div>
+                            <div class="col-4">
+                                <h5 class="text-primary mb-1">0</h5>
+                                <small class="text-muted">Đánh giá</small>
+                            </div>
+                            <div class="col-4">
+                                <h5 class="text-primary mb-1">0</h5>
+                                <small class="text-muted">Yêu thích</small>
+                            </div>
+                        </div>
+                        
+                        <!-- User Info Summary -->
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <p class="mb-1"><strong>Email:</strong> <%= user ? user.email : 'N/A' %></p>
+                            <p class="mb-1"><strong>Điện thoại:</strong> <%= user ? (user.phone || 'Chưa cập nhật') : 'N/A' %></p>
+                            <p class="mb-0"><strong>Địa chỉ:</strong> <%= user ? (user.address || 'Chưa cập nhật') : 'N/A' %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <div class="col-lg-8">
+                <div class="card profile-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-edit me-2"></i>Chỉnh sửa thông tin</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="/customer/profile/update">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Họ và tên</label>
+                                    <input type="text" class="form-control" name="fullName" value="<%= user ? user.fullName : '' %>" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" value="<%= user ? user.email : '' %>" disabled>
+                                    <small class="text-muted">Email không thể thay đổi</small>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Số điện thoại</label>
+                                    <input type="tel" class="form-control" name="phone" value="<%= user ? (user.phone || '') : '' %>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày sinh</label>
+                                    <input type="date" class="form-control" name="dateOfBirth" value="<%= user ? (user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : '') : '' %>">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Địa chỉ</label>
+                                <textarea class="form-control" name="address" rows="3"><%= user ? (user.address || '') : '' %></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" name="newPassword" placeholder="Để trống nếu không đổi">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Xác nhận mật khẩu</label>
+                                    <input type="password" class="form-control" name="confirmPassword" placeholder="Xác nhận mật khẩu mới">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Cập nhật
+                                </button>
+                                <a href="/customer/dashboard" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Account Security -->
+                <div class="card profile-card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-shield-alt me-2"></i>Bảo mật tài khoản</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Trạng thái email</h6>
+                                <span class="badge bg-<%= user ? (user.isEmailVerified ? 'success' : 'warning') : 'warning' %>">
+                                    <%= user ? (user.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực') : 'Chưa xác thực' %>
+                                </span>
+                                <% if (user && !user.isEmailVerified) { %>
+                                    <a href="/auth/resend-verification" class="btn btn-sm btn-outline-primary ms-2">Gửi lại email</a>
+                                <% } %>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Trạng thái tài khoản</h6>
+                                <span class="badge bg-<%= user ? (user.isActive ? 'success' : 'danger') : 'danger' %>">
+                                    <%= user ? (user.isActive ? 'Hoạt động' : 'Bị khóa') : 'Bị khóa' %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+

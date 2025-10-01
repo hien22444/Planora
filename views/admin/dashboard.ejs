@@ -1,64 +1,117 @@
+<header>
+    <h1>Dashboard</h1>
+    <div class="topbar">
+        <i class="fas fa-bell"></i>
+        <i class="fas fa-envelope"></i>
+        <img src="https://via.placeholder.com/40x40/3b5998/ffffff?text=A" alt="Admin">
+    </div>
+</header>
 
 <div class="cards">
-  <div class="card"><i class="fas fa-user"></i> <h3><%= userCount %></h3><p>Người dùng</p></div>
-  <div class="card"><i class="fas fa-store"></i> <h3><%= shopCount %></h3><p>Shop</p></div>
-  <div class="card"><i class="fas fa-cogs"></i> <h3><%= serviceCount %></h3><p>Dịch vụ</p></div>
-  <div class="card"><i class="fas fa-shopping-cart"></i> <h3><%= orderCount %></h3><p>Đơn thuê</p></div>
+    <div class="card">
+        <i class="fas fa-users"></i>
+        <h3><%= userCount %></h3>
+        <p>Người dùng</p>
+    </div>
+    <div class="card">
+        <i class="fas fa-store"></i>
+        <h3><%= shopCount %></h3>
+        <p>Cửa hàng</p>
+    </div>
+    <div class="card">
+        <i class="fas fa-cogs"></i>
+        <h3><%= serviceCount %></h3>
+        <p>Dịch vụ</p>
+    </div>
+    <div class="card">
+        <i class="fas fa-shopping-cart"></i>
+        <h3><%= orderCount %></h3>
+        <p>Đơn hàng</p>
+    </div>
 </div>
 
-
-<div class="dashboard-charts" style="margin-top:32px;">
-  <h3>Biểu đồ doanh thu</h3>
-  <canvas id="revenueChart"></canvas>
-  <h3 style="margin-top:24px;">Biểu đồ số đơn thuê</h3>
-  <canvas id="orderChart"></canvas>
+<div class="section-cards">
+    <div class="section-card">
+        <i class="fas fa-users"></i>
+        <h3>Quản lý người dùng</h3>
+        <p>Xem và quản lý tất cả người dùng trong hệ thống</p>
+    </div>
+    <div class="section-card">
+        <i class="fas fa-store"></i>
+        <h3>Quản lý cửa hàng</h3>
+        <p>Duyệt và quản lý các cửa hàng đăng ký</p>
+    </div>
+    <div class="section-card">
+        <i class="fas fa-cogs"></i>
+        <h3>Quản lý dịch vụ</h3>
+        <p>Kiểm duyệt và quản lý các dịch vụ được cung cấp</p>
+    </div>
+    <div class="section-card">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>Quản lý đơn hàng</h3>
+        <p>Theo dõi và xử lý các đơn hàng thuê dịch vụ</p>
+    </div>
+    <div class="section-card">
+        <i class="fas fa-chart-bar"></i>
+        <h3>Báo cáo thống kê</h3>
+        <p>Xem các báo cáo và thống kê chi tiết</p>
+    </div>
 </div>
 
+<div class="chart">
+    <h3>Biểu đồ doanh thu</h3>
+    <canvas id="revenueChart"></canvas>
+</div>
+
+<div class="chart">
+    <h3>Biểu đồ số đơn thuê</h3>
+    <canvas id="orderChart"></canvas>
+</div>
 
 <div class="dashboard-alerts" style="margin-top:32px;">
-  <h4>Cảnh báo</h4>
-  <ul>
-    <% alerts.forEach(a => { %>
-      <li style="color:#d9534f;font-weight:bold;"><%= a %></li>
-    <% }) %>
-  </ul>
+    <h4>Cảnh báo</h4>
+    <ul>
+        <% alerts.forEach(a => { %>
+            <li style="color:#d9534f;font-weight:bold;"><%= a %></li>
+        <% }) %>
+    </ul>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Truyền dữ liệu từ EJS sang JS
-  const revenueLabels = JSON.parse('<%- JSON.stringify(revenueLabels) %>');
-  const revenueData = JSON.parse('<%- JSON.stringify(revenueData) %>');
-  const orderLabels = JSON.parse('<%- JSON.stringify(orderLabels) %>');
-  const orderData = JSON.parse('<%- JSON.stringify(orderData) %>');
+    // Truyền dữ liệu từ EJS sang JS
+    const revenueLabels = JSON.parse('<%- JSON.stringify(revenueLabels) %>');
+    const revenueData = JSON.parse('<%- JSON.stringify(revenueData) %>');
+    const orderLabels = JSON.parse('<%- JSON.stringify(orderLabels) %>');
+    const orderData = JSON.parse('<%- JSON.stringify(orderData) %>');
 
-  const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-  new Chart(revenueCtx, {
-    type: 'line',
-    data: {
-      labels: revenueLabels,
-      datasets: [{
-        label: 'Doanh thu',
-        data: revenueData,
-        borderColor: 'orange',
-        backgroundColor: 'rgba(255,165,0,0.1)',
-        fill: true
-      }]
-    }
-  });
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: 'Doanh thu',
+                data: revenueData,
+                borderColor: 'orange',
+                backgroundColor: 'rgba(255,165,0,0.1)',
+                fill: true
+            }]
+        }
+    });
 
-  const orderCtx = document.getElementById('orderChart').getContext('2d');
-  new Chart(orderCtx, {
-    type: 'bar',
-    data: {
-      labels: orderLabels,
-      datasets: [{
-        label: 'Số đơn thuê',
-        data: orderData,
-        backgroundColor: 'rgba(54,162,235,0.5)',
-        borderColor: 'blue',
-        borderWidth: 1
-      }]
-    }
-  });
+    const orderCtx = document.getElementById('orderChart').getContext('2d');
+    new Chart(orderCtx, {
+        type: 'bar',
+        data: {
+            labels: orderLabels,
+            datasets: [{
+                label: 'Số đơn thuê',
+                data: orderData,
+                backgroundColor: 'rgba(54,162,235,0.5)',
+                borderColor: 'blue',
+                borderWidth: 1
+            }]
+        }
+    });
 </script>

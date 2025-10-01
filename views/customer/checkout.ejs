@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - Planora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap                            // Lấy dữ liệu form
+                                const orderData = {
+                                    eventDate: form.querySelector('input[name="eventDate"]').value,
+                                    eventLocation: form.querySelector('textarea[name="eventLocation"]').value,
+                                    contactPhone: form.querySelector('input[name="contactPhone"]').value,
+                                    notes: form.querySelector('textarea[name="notes"]').value,
+                                    paymentMethod: form.querySelector('input[name="paymentMethod"]:checked').value
+                                };
+
+                                console.log('Sending order data:', orderData);
+
+                                // Gửi request
+                                const response = await fetch('/customer/order', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify(orderData),
+                                    credentials: 'same-origin' // Gửi kèm cookie session
+                                });bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .checkout-card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .service-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        .service-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-calendar-alt me-2"></i>Planora
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/dashboard">
+                            <i class="fas fa-home me-1"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/services">
+                            <i class="fas fa-search me-1"></i>Tìm dịch vụ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/orders">
+                            <i class="fas fa-list me-1"></i>Đơn hàng
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/cart">
+                            <i class="fas fa-shopping-cart me-1"></i>Giỏ hàng
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><%= user ? user.fullName : 'Tài khoản' %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/customer/profile">
+                                <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                            </a></li>
+                            <li><a class="dropdown-item" href="/logout">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-primary text-white py-4">
+        <div class="container">
+            <h1 class="h3 mb-0"><i class="fas fa-credit-card me-2"></i>Thanh toán</h1>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <!-- Order Summary -->
+            <div class="col-lg-8">
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list me-2"></i>Đơn hàng của bạn</h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (cart && cart.length > 0) { %>
+                            <% cart.forEach(item => { %>
+                                <div class="service-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <img src="https://via.placeholder.com/80x80/667eea/ffffff?text=<%= item.service.name %>" class="img-fluid rounded" alt="<%= item.service.name %>">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-1"><%= item.service.name %></h6>
+                                            <p class="text-muted small mb-0"><%= item.service.shop.shopName %></p>
+                                            <p class="text-muted small mb-0">Giá: <%= item.service.price.toLocaleString() %> VNĐ / <%= item.service.unit %></p>
+                                        </div>
+                                        <div class="col-md-2 text-center">
+                                            <span class="badge bg-primary">x<%= item.quantity %></span>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <h6 class="mb-0 text-primary"><%= (item.service.price * item.quantity).toLocaleString() %> VNĐ</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="text-center py-4">
+                                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Giỏ hàng trống</p>
+                                <a href="/customer/services" class="btn btn-primary">Tiếp tục mua sắm</a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Event Information -->
+                <div class="card checkout-card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-calendar me-2"></i>Thông tin sự kiện</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="checkoutForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày sự kiện *</label>
+                                    <input type="date" class="form-control" name="eventDate" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Số điện thoại liên hệ *</label>
+                                    <input type="tel" class="form-control" name="contactPhone" value="<%= user.phone || '' %>" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Địa điểm sự kiện *</label>
+                                <textarea class="form-control" name="eventLocation" rows="3" placeholder="Nhập địa điểm diễn ra sự kiện" required><%= user.address || '' %></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ghi chú thêm</label>
+                                <textarea class="form-control" name="notes" rows="3" placeholder="Ghi chú thêm về sự kiện, yêu cầu đặc biệt..."></textarea>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="col-lg-4">
+                <div class="card checkout-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-credit-card me-2"></i>Thanh toán</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Payment Method -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Phương thức thanh toán</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="zalopay" value="zalopay" checked>
+                                <label class="form-check-label" for="zalopay">
+                                    <img src="https://cdn.zalopay.com.vn/logo/zalopay-logo.png" alt="ZaloPay" height="20" class="me-2">
+                                    ZaloPay
+                                    <small class="text-muted ms-2">(Tài khoản test)</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="bank">
+                                <label class="form-check-label" for="bank">
+                                    <i class="fas fa-university me-2"></i>Chuyển khoản ngân hàng
+                                </label>
+                            </div>
+                            <div class="mt-3 p-3 bg-light rounded" id="bankInfo" style="display: none;">
+                                <p class="mb-2"><strong>Thông tin chuyển khoản:</strong></p>
+                                <p class="mb-1">Ngân hàng: <strong>Vietcombank</strong></p>
+                                <p class="mb-1">Số tài khoản: <strong>1234567890</strong></p>
+                                <p class="mb-1">Chủ tài khoản: <strong>PLANORA COMPANY</strong></p>
+                                <p class="mb-0">Nội dung: <strong>PLANORA_[Mã đơn hàng]</strong></p>
+                            </div>
+                        </div>
+                        
+                        <script>
+                        // Payment method toggle
+                        document.querySelectorAll('input[name="paymentMethod"]').forEach((elem) => {
+                          elem.addEventListener("change", function(event) {
+                            var bankInfo = document.getElementById("bankInfo");
+                            bankInfo.style.display = event.target.value === "bank" ? "block" : "none";
+                          });
+                        });
+
+                        // Form submission
+                        document.getElementById('submitOrder').addEventListener('click', async function(e) {
+                            e.preventDefault();
+                            const form = document.getElementById('checkoutForm');
+                            const submitBtn = this;
+                            const spinner = document.getElementById('submitSpinner');
+
+                            // Show loading state
+                            submitBtn.disabled = true;
+                            spinner.classList.remove('d-none');
+
+                            try {
+                                // Lấy dữ liệu form
+                                const orderData = {
+                                    eventDate: form.querySelector('input[name="eventDate"]').value,
+                                    eventLocation: form.querySelector('textarea[name="eventLocation"]').value,
+                                    contactPhone: form.querySelector('input[name="contactPhone"]').value,
+                                    notes: form.querySelector('textarea[name="notes"]').value,
+                                    paymentMethod: form.querySelector('input[name="paymentMethod"]:checked').value
+                                };
+
+                                console.log('Sending order data:', orderData);
+
+                                // Gửi request
+                                const response = await fetch('/customer/order', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify(orderData),
+                                    credentials: 'same-origin' // Gửi kèm cookie session
+                                });
+
+                                const result = await response.json();
+
+                                if (result.success) {
+                                    if (result.paymentUrl) {
+                                        // Redirect to payment URL if provided
+                                        window.location.href = result.paymentUrl;
+                                    } else {
+                                        // Otherwise redirect to orders page
+                                        window.location.href = '/customer/orders';
+                                    }
+                                } else {
+                                    alert(result.error || 'Có lỗi xảy ra khi xử lý đơn hàng');
+                                }
+                            } catch (error) {
+                                console.error('Order submission error:', error);
+                                alert('Có lỗi xảy ra khi xử lý đơn hàng');
+                            } finally {
+                                // Reset loading state
+                                submitBtn.disabled = false;
+                                spinner.classList.add('d-none');
+                            }
+                        });
+                        </script>
+
+                        <!-- Order Summary -->
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tạm tính:</span>
+                                <span><%= totalAmount.toLocaleString() %> VNĐ</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Phí vận chuyển:</span>
+                                <span>0 VNĐ</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Giảm giá:</span>
+                                <span>0 VNĐ</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Tổng cộng:</span>
+                                <span class="text-primary"><%= totalAmount.toLocaleString() %> VNĐ</span>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100 mt-4" id="submitOrder">
+                            <i class="fas fa-check me-2"></i>Đặt hàng ngay
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" id="submitSpinner"></span>
+                        </button>
+                        </form>
+
+                        <a href="/customer/cart" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại giỏ hàng
+                        </a>
+
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            document.getElementById('submitOrder').addEventListener('click', async function() {
+                            const submitBtn = document.getElementById('submitOrder');
+                            const spinner = document.getElementById('submitSpinner');
+                            const form = document.querySelector('form');
+
+                            try {
+                                // Hiện loading
+                                submitBtn.disabled = true;
+                                spinner.classList.remove('d-none');
+
+                                // Lấy dữ liệu form
+                                const formData = new FormData(form);
+                                const orderData = {
+                                    eventDate: formData.get('eventDate'),
+                                    eventLocation: formData.get('eventLocation'),
+                                    contactPhone: formData.get('contactPhone'),
+                                    paymentMethod: formData.get('paymentMethod'),
+                                    notes: formData.get('notes') || ''
+                                };
+
+                                console.log('Sending order data:', orderData);
+
+                                // Gửi request
+                                const response = await fetch('/customer/order', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify(orderData),
+                                    credentials: 'same-origin'
+                                });
+
+                                console.log('Server response:', response);
+
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+
+                                const result = await response.json();
+                                console.log('Response data:', result);
+
+                                if (result.success) {
+                                    if (orderData.paymentMethod === 'zalopay') {
+                                        console.log('Redirecting to ZaloPay:', result.paymentUrl);
+                                        window.location.href = result.paymentUrl;
+                                    } else {
+                                        window.location.href = '/customer/orders';
+                                    }
+                                } else {
+                                    throw new Error(result.error || 'Unknown error occurred');
+                                }
+                            } catch (error) {
+                                console.error('Error during order submission:', error);
+                                alert(error.message || 'Có lỗi xảy ra khi xử lý đơn hàng. Vui lòng thử lại.');
+                            } finally {
+                                // Tắt loading
+                                submitBtn.disabled = false;
+                                spinner.classList.add('d-none');
+                            }
+                        });
+                        });
+                        </script>
+                    </div>
+                </div>
+
+                <!-- Security Info -->
+                <div class="card checkout-card mt-3">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt fa-2x text-success mb-3"></i>
+                        <h6>Bảo mật thanh toán</h6>
+                        <p class="small text-muted mb-0">Thông tin của bạn được bảo mật và mã hóa</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: ''
+    default: 'https://via.placeholder.com/80x80/3b5998/ffffff?text=Avatar'
   },
   createdAt: {
     type: Date,

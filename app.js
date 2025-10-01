@@ -34,7 +34,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(expressLayouts);
-app.set("layout", "layouts/admin"); // layout mặc định
+app.set("layout", "layouts/main"); // layout mặc định
 
 // Load user middleware
 app.use(loadUser);
@@ -49,6 +49,11 @@ app.get("/test", (req, res) => {
   res.render('test-redirect', { user: req.user });
 });
 
+// Test all pages
+app.get('/test-all', (req, res) => {
+  res.render('test-all', { user: req.user });
+});
+
 // Test email
 app.get("/test-email", (req, res) => {
   res.render('test-email');
@@ -57,6 +62,16 @@ app.get("/test-email", (req, res) => {
 // Test guide
 app.get("/test-guide", (req, res) => {
   res.render('test-guide');
+});
+
+// Debug page
+app.get("/debug", (req, res) => {
+  res.render('debug', { user: req.user });
+});
+
+// Test customer pages
+app.get("/test-customer", (req, res) => {
+  res.render('test-customer');
 });
 
 app.post("/test-email", async (req, res) => {
@@ -72,31 +87,31 @@ app.post("/test-email", async (req, res) => {
 });
 
 // Trang chủ → redirect theo role hoặc trang chủ
-app.get("/", (req, res) => {
-  console.log('Home page - User:', req.user ? req.user.fullName : 'Not logged in');
-  console.log('Home page - Role:', req.user ? req.user.role : 'No role');
+// Home route
+app.get('/', (req, res) => {
+  console.log('=== HOME PAGE DEBUG ===');
+  console.log('User:', req.user ? req.user.fullName : 'Not logged in');
+  console.log('Role:', req.user ? req.user.role : 'No role');
   
   if (req.user) {
     if (req.user.role === 'admin') {
-      console.log('Redirecting admin to dashboard');
       return res.redirect('/admin/dashboard');
-    } else if (req.user.role === 'shop') {
-      console.log('Redirecting shop to dashboard');
-      return res.redirect('/shop/dashboard');
-    } else {
-      console.log('Redirecting customer to dashboard');
+    } else if (req.user.role === 'customer') {
       return res.redirect('/customer/dashboard');
     }
   }
-  console.log('Rendering home page for guest');
-  res.render('pages/home', { 
-    layout: 'layouts/main',
-    title: 'Planora - Thuê dịch vụ sự kiện' 
-  });
+  res.redirect('/auth/login');
 });
 
+// Legacy route redirects
+app.get('/login', (req, res) => res.redirect('/auth/login'));
+app.get('/register', (req, res) => res.redirect('/auth/register'));
+app.post('/login', (req, res) => res.redirect('/auth/login'));
+app.post('/register', (req, res) => res.redirect('/auth/register'));
+app.post('/logout', (req, res) => res.redirect('/auth/logout'));
+
 // Auth routes
-app.use("/", authRoutes);
+app.use("/auth", authRoutes);
 
 // Customer routes
 app.use("/customer", customerRoutes);

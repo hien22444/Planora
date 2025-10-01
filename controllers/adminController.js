@@ -50,6 +50,7 @@ exports.dashboard = async (req, res) => {
     }
 
     res.render("admin/dashboard", {
+      layout: 'layouts/admin',
       title: "Dashboard",
       userCount,
       shopCount,
@@ -65,6 +66,7 @@ exports.dashboard = async (req, res) => {
     console.error('Dashboard error:', error);
     req.flash('error', 'Có lỗi xảy ra khi tải dashboard');
     res.render("admin/dashboard", {
+      layout: 'layouts/admin',
       title: "Dashboard",
       userCount: 0,
       shopCount: 0,

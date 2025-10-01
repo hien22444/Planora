@@ -61,7 +61,7 @@ Sau đó cập nhật thông tin email trong file `.env`:
 
 ### 4. Tạo dữ liệu mẫu
 ```bash
-npm run reset-seed
+npm run seed
 ```
 
 ### 5. Chạy server

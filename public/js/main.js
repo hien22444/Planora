@@ -34,12 +34,16 @@ document.addEventListener('DOMContentLoaded', function() {
     anchorLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+            const href = this.getAttribute('href');
+            // Only process valid selectors (not just '#')
+            if (href && href !== '#' && href.startsWith('#')) {
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             }
         });
     });
@@ -167,8 +171,8 @@ document.addEventListener('DOMContentLoaded', function() {
     images.forEach(img => imageObserver.observe(img));
 
     // Form validation
-    const forms = document.querySelectorAll('form[novalidate]');
-    forms.forEach(form => {
+    const validationForms = document.querySelectorAll('form[novalidate]');
+    validationForms.forEach(form => {
         form.addEventListener('submit', function(e) {
             if (!form.checkValidity()) {
                 e.preventDefault();

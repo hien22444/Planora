@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
 
     if (existingUser) {
       req.flash('error', 'Email hoặc username đã được sử dụng');
-      return res.redirect('/register');
+      return res.redirect('/auth/register');
     }
 
     // Tạo token xác thực email
@@ -65,12 +65,16 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Register error:', error);
     req.flash('error', 'Có lỗi xảy ra khi đăng ký');
-    res.redirect('/register');
+    res.redirect('/auth/register');
   }
 });
 
 // Đăng nhập
 router.get('/login', (req, res) => {
+  if (req.user) {
+    if (req.user.role === 'admin') return res.redirect('/admin/dashboard');
+    if (req.user.role === 'customer') return res.redirect('/customer/dashboard');
+  }
   res.render('auth/login', { 
     layout: 'layouts/main',
     title: 'Đăng nhập'

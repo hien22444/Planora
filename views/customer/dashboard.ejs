@@ -1,151 +1,267 @@
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
-            <span class="text-muted">Xin chào, <%= user.fullName %>!</span>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">Đơn hàng</h4>
-                        <p class="card-text">Tổng đơn hàng</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-shopping-cart fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">Hoàn thành</h4>
-                        <p class="card-text">Đơn đã hoàn thành</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">Đang xử lý</h4>
-                        <p class="card-text">Đơn đang xử lý</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-clock fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title">Đánh giá</h4>
-                        <p class="card-text">Đánh giá đã gửi</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-star fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-history me-2"></i>Đơn hàng gần đây</h5>
-            </div>
-            <div class="card-body">
-                <% if (recentOrders && recentOrders.length > 0) { %>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Shop</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% recentOrders.forEach(order => { %>
-                                    <tr>
-                                        <td><%= order._id.toString().slice(-8) %></td>
-                                        <td><%= order.shop.shopName %></td>
-                                        <td><%= order.totalAmount.toLocaleString() %> VNĐ</td>
-                                        <td>
-                                            <span class="badge bg-<%= order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'info' %>">
-                                                <%= order.status === 'pending' ? 'Chờ xử lý' : 
-                                                    order.status === 'confirmed' ? 'Đã xác nhận' :
-                                                    order.status === 'in_progress' ? 'Đang xử lý' :
-                                                    order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy' %>
-                                            </span>
-                                        </td>
-                                        <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
-                                        <td>
-                                            <a href="/customer/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <% }) %>
-                            </tbody>
-                        </table>
-                    </div>
-                <% } else { %>
-                    <div class="text-center py-4">
-                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Bạn chưa có đơn hàng nào</p>
-                        <a href="/customer/services" class="btn btn-primary">
-                            <i class="fas fa-search me-2"></i>Tìm dịch vụ
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planora - Thuê dịch vụ sự kiện</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .service-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .category-btn {
+            border-radius: 25px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .category-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .search-box {
+            border-radius: 25px;
+            border: 2px solid #e9ecef;
+            padding: 15px 25px;
+        }
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-calendar-alt me-2"></i>Planora
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/customer/dashboard">
+                            <i class="fas fa-home me-1"></i>Trang chủ
                         </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/services">
+                            <i class="fas fa-search me-1"></i>Tìm dịch vụ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/orders">
+                            <i class="fas fa-list me-1"></i>Đơn hàng
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/cart">
+                            <i class="fas fa-shopping-cart me-1"></i>Giỏ hàng
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><%= user ? user.fullName : 'Tài khoản' %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/customer/profile">
+                                <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">Thuê dịch vụ sự kiện dễ dàng</h1>
+                    <p class="lead mb-4">Tìm kiếm và đặt thuê các dịch vụ sự kiện chất lượng cao với giá cả hợp lý</p>
+                    
+                    <!-- Search Form -->
+                    <form action="/customer/services" method="GET" class="d-flex">
+                        <input type="text" name="search" class="form-control search-box me-2" 
+                               placeholder="Tìm kiếm dịch vụ...">
+                        <button type="submit" class="btn btn-light btn-lg">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-calendar-check fa-10x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Danh mục dịch vụ</h2>
+            <div class="text-center">
+                <a href="/customer/services" class="btn btn-outline-primary category-btn">Tất cả</a>
+                <a href="/customer/services?category=sound" class="btn btn-outline-primary category-btn">Âm thanh</a>
+                <a href="/customer/services?category=lighting" class="btn btn-outline-primary category-btn">Ánh sáng</a>
+                <a href="/customer/services?category=furniture" class="btn btn-outline-primary category-btn">Nội thất</a>
+                <a href="/customer/services?category=decoration" class="btn btn-outline-primary category-btn">Trang trí</a>
+                <a href="/customer/services?category=photography" class="btn btn-outline-primary category-btn">Nhiếp ảnh</a>
+                <a href="/customer/services?category=videography" class="btn btn-outline-primary category-btn">Quay phim</a>
+                <a href="/customer/services?category=entertainment" class="btn btn-outline-primary category-btn">Giải trí</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Services -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Dịch vụ nổi bật</h2>
+            <div class="row">
+                <% if (services && services.length > 0) { %>
+                    <% services.slice(0, 6).forEach(service => { %>
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card service-card h-100">
+                                <div class="card-img-top bg-primary text-white text-center py-5">
+                                    <i class="fas fa-<%= service.category === 'sound' ? 'volume-up' : 
+                                        service.category === 'lighting' ? 'lightbulb' :
+                                        service.category === 'furniture' ? 'chair' :
+                                        service.category === 'decoration' ? 'palette' :
+                                        service.category === 'photography' ? 'camera' :
+                                        service.category === 'videography' ? 'video' :
+                                        'star' %> fa-3x"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title"><%= service.name %></h5>
+                                    <p class="card-text text-muted"><%= service.description.substring(0, 100) %>...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="h5 text-primary mb-0"><%= service.price.toLocaleString() %> VNĐ</span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <%= service.rating || 0 %> (<%= service.totalReviews || 0 %> đánh giá)
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="/customer/services/<%= service._id %>" class="btn btn-primary w-100">
+                                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Chưa có dịch vụ nào</h4>
+                        <p class="text-muted">Hãy thử tìm kiếm với từ khóa khác</p>
                     </div>
                 <% } %>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h5>
+            
+            <div class="text-center mt-4">
+                <a href="/customer/services" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-list me-2"></i>Xem tất cả dịch vụ
+                </a>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="/customer/services" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i>Tìm dịch vụ
-                    </a>
-                    <a href="/customer/cart" class="btn btn-outline-primary">
-                        <i class="fas fa-shopping-cart me-2"></i>Giỏ hàng
-                    </a>
-                    <a href="/customer/orders" class="btn btn-outline-secondary">
-                        <i class="fas fa-list me-2"></i>Xem tất cả đơn hàng
-                    </a>
+        </div>
+    </section>
+
+    <!-- Recent Orders -->
+    <% if (recentOrders && recentOrders.length > 0) { %>
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Đơn hàng gần đây</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <% recentOrders.forEach(order => { %>
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                                    <div>
+                                        <h6 class="mb-1">Đơn hàng #<%= order._id.toString().slice(-8) %></h6>
+                                        <small class="text-muted"><%= order.shop.shopName %></small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="h6 text-primary"><%= order.totalAmount.toLocaleString() %> VNĐ</div>
+                                        <span class="badge bg-<%= order.status === 'completed' ? 'success' : 
+                                            order.status === 'pending' ? 'warning' : 'info' %>">
+                                            <%= order.status === 'pending' ? 'Chờ xử lý' : 
+                                                order.status === 'confirmed' ? 'Đã xác nhận' :
+                                                order.status === 'in_progress' ? 'Đang xử lý' :
+                                                order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy' %>
+                                        </span>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="/customer/orders" class="btn btn-outline-primary">
+                                <i class="fas fa-list me-2"></i>Xem tất cả đơn hàng
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <% } %>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <h5><i class="fas fa-calendar-alt me-2"></i>Planora</h5>
+                    <p class="text-muted">Nền tảng thuê dịch vụ sự kiện hàng đầu Việt Nam</p>
+                </div>
+                <div class="col-lg-4">
+                    <h6>Liên kết nhanh</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/customer/services" class="text-muted text-decoration-none">Tìm dịch vụ</a></li>
+                        <li><a href="/customer/orders" class="text-muted text-decoration-none">Đơn hàng</a></li>
+                        <li><a href="/customer/cart" class="text-muted text-decoration-none">Giỏ hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6>Liên hệ</h6>
+                    <p class="text-muted mb-1"><i class="fas fa-phone me-2"></i>0123 456 789</p>
+                    <p class="text-muted mb-1"><i class="fas fa-envelope me-2"></i>support@planora.com</p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center text-muted">
+                <p>&copy; 2024 Planora. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
