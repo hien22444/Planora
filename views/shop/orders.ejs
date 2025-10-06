@@ -1,0 +1,19 @@
+<div class="container mt-4">
+  <h2>Đơn hàng của shop</h2>
+  <% if (orders && orders.length) { %>
+    <div class="list-group mt-3">
+      <% orders.forEach(order => { %>
+        <a href="/customer/shop/orders/<%= order._id %>" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">Đơn #<%= order._id.toString().slice(-8) %></h5>
+            <small><%= new Date(order.createdAt).toLocaleString('vi-VN') %></small>
+          </div>
+          <p class="mb-1">Khách: <%= order.customer ? order.customer.fullName : 'N/A' %> - <%= order.customer ? order.customer.phone : '' %></p>
+          <small>Tổng: <strong class="text-primary"><%= order.totalAmount.toLocaleString() %> VNĐ</strong> • Trạng thái: <%= order.status %></small>
+        </a>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="mt-3">Chưa có đơn hàng nào cho shop của bạn.</p>
+  <% } %>
+</div>

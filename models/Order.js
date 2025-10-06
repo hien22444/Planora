@@ -76,6 +76,12 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+  ,
+  // Flag to mark that soldCount has been applied for this order
+  countsApplied: {
+    type: Boolean,
+    default: false
+  }
 });
 
 orderSchema.pre('save', function(next) {

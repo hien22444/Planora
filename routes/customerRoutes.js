@@ -4,7 +4,8 @@ const Order = require('../models/Order');
 const Review = require('../models/Review');
 const User = require('../models/User');
 const Category = require('../models/Category');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireShop } = require('../middleware/auth');
+const { incrementSoldCountForOrder } = require('../services/orderService');
 
 const router = express.Router();
 
@@ -685,6 +686,122 @@ router.get('/orders', requireAuth, async (req, res) => {
     console.error('Orders list error:', error);
     req.flash('error', 'Có lỗi xảy ra khi tải lịch sử đơn hàng');
     res.redirect('/customer/dashboard');
+  }
+});
+
+// --- Shop: view orders for the logged-in shop ---
+router.get('/shop/orders', requireShop, async (req, res) => {
+  try {
+    const query = { shop: req.user._id };
+    // Optional filter to show orders only for a specific service
+    if (req.query.serviceId && req.query.serviceId.match(/^[0-9a-fA-F]{24}$/)) {
+      query['services.service'] = req.query.serviceId;
+    }
+
+    const orders = await Order.find(query)
+      .populate('customer', 'fullName email phone')
+      .populate('services.service', 'title price')
+      .sort({ createdAt: -1 });
+
+    res.render('shop/orders', {
+      title: 'Đơn hàng shop',
+      user: req.user,
+      orders
+    });
+  } catch (error) {
+    console.error('Shop orders list error:', error);
+    req.flash('error', 'Có lỗi xảy ra khi tải đơn hàng của shop');
+    res.redirect('/customer/dashboard');
+  }
+});
+
+// Shop: order detail
+router.get('/shop/orders/:id', requireShop, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, shop: req.user._id })
+      .populate('customer', 'fullName email phone')
+      .populate({ path: 'services.service', select: 'title price description' });
+
+    if (!order) {
+      req.flash('error', 'Đơn hàng không tồn tại hoặc bạn không có quyền xem');
+      return res.redirect('/customer/shop/orders');
+    }
+
+    res.render('shop/order-detail', {
+      title: 'Chi tiết đơn hàng',
+      user: req.user,
+      order
+    });
+  } catch (error) {
+    console.error('Shop order detail error:', error);
+    req.flash('error', 'Có lỗi xảy ra khi tải chi tiết đơn hàng');
+    res.redirect('/customer/shop/orders');
+  }
+});
+
+// Shop requests customer to confirm completion
+router.post('/shop/orders/:id/request-confirm', requireShop, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, shop: req.user._id });
+    if (!order) {
+      req.flash('error', 'Đơn hàng không tồn tại hoặc bạn không có quyền thực hiện');
+      return res.redirect('/customer/shop/orders');
+    }
+
+    // Only allow if not already completed/cancelled
+    if (order.status === 'completed' || order.status === 'cancelled') {
+      req.flash('warning', 'Đơn hàng đã hoàn thành hoặc đã hủy');
+      return res.redirect('/customer/shop/orders/' + order._id);
+    }
+
+    // Mark as shop-confirmed so customer knows to confirm
+    order.status = 'confirmed';
+    await order.save();
+
+    // Optional: TODO send email/notification to customer here using emailService
+
+    req.flash('success', 'Đã gửi yêu cầu xác nhận đến khách hàng');
+    res.redirect('/customer/shop/orders/' + order._id);
+  } catch (err) {
+    console.error('Shop request confirm error:', err);
+    req.flash('error', 'Có lỗi xảy ra');
+    res.redirect('/customer/shop/orders');
+  }
+});
+
+// Customer confirms order completion (final)
+router.post('/orders/:id/confirm', requireAuth, async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!order) {
+      req.flash('error', 'Đơn hàng không tồn tại');
+      return res.redirect('/customer/orders');
+    }
+
+    // Only allow if shop already requested confirmation (status === 'confirmed')
+    if (order.status !== 'confirmed') {
+      req.flash('warning', 'Đơn hàng chưa được shop xác nhận để yêu cầu hoàn tất');
+      return res.redirect('/customer/orders/' + order._id);
+    }
+
+    const prevStatus = order.status;
+    order.status = 'completed';
+    order.updatedAt = Date.now();
+    await order.save();
+
+    // Increment sold counts for the services in this order
+    try {
+      await incrementSoldCountForOrder(order._id);
+    } catch (err) {
+      console.error('Error incrementing soldCount on customer confirm:', err);
+    }
+
+    req.flash('success', 'Bạn đã xác nhận hoàn thành. Cảm ơn!');
+    res.redirect('/customer/orders/' + order._id);
+  } catch (err) {
+    console.error('Customer confirm error:', err);
+    req.flash('error', 'Có lỗi xảy ra khi xác nhận');
+    res.redirect('/customer/orders');
   }
 });
 

@@ -211,6 +211,15 @@
                                 </form>
                             <% } %>
 
+                            <% if (order.status === 'confirmed') { %>
+                                <form action="/customer/orders/<%= order._id %>/confirm" method="POST">
+                                    <button type="submit" class="btn btn-success w-100" 
+                                            onclick="return confirm('Xác nhận dịch vụ đã hoàn thành? Sau khi xác nhận, đơn hàng sẽ được đánh dấu hoàn thành.')">
+                                        <i class="fas fa-check me-2"></i>Xác nhận hoàn thành
+                                    </button>
+                                </form>
+                            <% } %>
+
                             <% if (order.status === 'completed') { %>
                                 <a href="/customer/reviews/<%= order._id %>" class="btn btn-success">
                                     <i class="fas fa-star me-2"></i>Đánh giá dịch vụ

@@ -18,6 +18,9 @@
         <a href="/categories" class="list-group-item list-group-item-action">
           <i class="fas fa-layer-group me-2"></i>Thêm Category
         </a>
+        <a href="/customer/shop/orders" class="list-group-item list-group-item-action">
+          <i class="fas fa-receipt me-2"></i>Đơn hàng Shop
+        </a>
       <% } %>
       <a href="/customer/orders" class="list-group-item list-group-item-action">
         <i class="fas fa-receipt me-2"></i>Đơn hàng
@@ -90,7 +93,12 @@
                      title="Xem doanh số">
                     <i class="fas fa-chart-bar"></i>
                   </a>
-
+                  <!-- Nút xem tất cả đơn hàng của service (shop view) -->
+                  <a href="/customer/shop/orders?serviceId=<%= s._id %>" 
+                    class="btn btn-sm btn-outline-info" 
+                    title="Xem đơn hàng">
+                    <i class="fas fa-receipt"></i>
+                  </a>
                   <a href="/services/edit/<%= s._id %>" 
                      class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-edit"></i>

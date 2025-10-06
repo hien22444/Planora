@@ -1,0 +1,33 @@
+<h3>Đơn hàng <%= serviceId ? "của service này" : "" %></h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Mã đơn hàng</th>
+      <th>Ngày tạo</th>
+      <th>Trạng thái</th>
+      <th>Dịch vụ</th>
+      <th>Số lượng</th>
+      <th>Doanh thu</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (orders.length === 0) { %>
+      <tr>
+        <td colspan="6" class="text-center">Chưa có đơn hàng</td>
+      </tr>
+    <% } else { %>
+      <% orders.forEach(order => { %>
+        <% order.services.forEach(item => { %>
+          <tr>
+            <td><%= order._id %></td>
+            <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+            <td><%= order.status %></td>
+            <td><%= item.service ? item.service.title : 'N/A' %></td>
+            <td><%= item.quantity %></td>
+            <td><%= (item.quantity * item.price).toLocaleString('vi-VN') %> VNĐ</td>
+          </tr>
+        <% }) %>
+      <% }) %>
+    <% } %>
+  </tbody>
+</table>
