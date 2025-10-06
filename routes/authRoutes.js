@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const User = require('../models/User');
 const { requireAuth } = require('../middleware/auth');
-const { sendVerificationEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -62,7 +62,7 @@ router.post('/register', async (req, res) => {
       req.flash('error', 'Có lỗi xảy ra khi gửi email xác thực. Vui lòng thử lại sau');
     }
     
-    res.redirect('/login');
+    res.redirect('/auth/login');
   } catch (error) {
     console.error('Register error:', error);
     req.flash('error', 'Có lỗi xảy ra khi đăng ký');
@@ -90,26 +90,26 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       req.flash('error', 'Email hoặc mật khẩu không đúng');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Kiểm tra password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       req.flash('error', 'Email hoặc mật khẩu không đúng');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Kiểm tra tài khoản có bị khóa không
     if (!user.isActive) {
       req.flash('error', 'Tài khoản của bạn đã bị khóa');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Kiểm tra email đã được xác thực chưa
     if (!user.isEmailVerified) {
       req.flash('error', 'Vui lòng xác thực email trước khi đăng nhập. Kiểm tra hộp thư của bạn');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Lưu session
@@ -129,7 +129,7 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     req.flash('error', 'Có lỗi xảy ra khi đăng nhập');
-    res.redirect('/login');
+    res.redirect('/auth/login');
   }
 });
 
@@ -140,7 +140,7 @@ router.get('/verify-email', async (req, res) => {
     
     if (!token) {
       req.flash('error', 'Token xác thực không hợp lệ');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Tìm user với token
@@ -151,7 +151,7 @@ router.get('/verify-email', async (req, res) => {
 
     if (!user) {
       req.flash('error', 'Token xác thực không hợp lệ hoặc đã hết hạn');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Cập nhật trạng thái xác thực
@@ -161,11 +161,11 @@ router.get('/verify-email', async (req, res) => {
     await user.save();
 
     req.flash('success', 'Email đã được xác thực thành công! Bạn có thể đăng nhập ngay bây giờ');
-    res.redirect('/login');
+    res.redirect('/auth/login');
   } catch (error) {
     console.error('Email verification error:', error);
     req.flash('error', 'Có lỗi xảy ra khi xác thực email');
-    res.redirect('/login');
+    res.redirect('/auth/login');
   }
 });
 
@@ -177,12 +177,12 @@ router.post('/resend-verification', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       req.flash('error', 'Email không tồn tại');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     if (user.isEmailVerified) {
       req.flash('info', 'Email đã được xác thực rồi');
-      return res.redirect('/login');
+      return res.redirect('/auth/login');
     }
 
     // Tạo token mới
@@ -202,11 +202,11 @@ router.post('/resend-verification', async (req, res) => {
       req.flash('error', 'Không thể gửi email xác thực. Vui lòng thử lại sau');
     }
     
-    res.redirect('/login');
+    res.redirect('/auth/login');
   } catch (error) {
     console.error('Resend verification error:', error);
     req.flash('error', 'Có lỗi xảy ra khi gửi lại email xác thực');
-    res.redirect('/login');
+    res.redirect('/auth/login');
   }
 });
 
@@ -216,8 +216,136 @@ router.post('/logout', (req, res) => {
     if (err) {
       console.error('Logout error:', err);
     }
-    res.redirect('/login');
+    res.redirect('/auth/login');
   });
+});
+
+// Quên mật khẩu - hiển thị form
+router.get('/forgot-password', (req, res) => {
+  res.render('auth/forgot-password', { 
+    layout: 'layouts/main',
+    title: 'Quên mật khẩu'
+  });
+});
+
+// Quên mật khẩu - xử lý
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    const user = await User.findOne({ email });
+    if (!user) {
+      req.flash('error', 'Không tìm thấy tài khoản với email này');
+      return res.redirect('/auth/forgot-password');
+    }
+
+    // Tạo token reset password
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 giờ
+
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = resetExpires;
+    await user.save();
+
+    // Gửi email reset password
+    try {
+      const emailSent = await sendPasswordResetEmail(email, resetToken);
+      
+      if (emailSent) {
+        req.flash('success', `Email đặt lại mật khẩu đã được gửi đến ${email}. Vui lòng kiểm tra hộp thư của bạn.`);
+      } else {
+        req.flash('error', 'Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau.');
+      }
+    } catch (error) {
+      console.error('Password reset email error:', error);
+      req.flash('error', 'Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau.');
+    }
+    
+    res.redirect('/auth/forgot-password');
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    req.flash('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
+    res.redirect('/auth/forgot-password');
+  }
+});
+
+// Reset mật khẩu - hiển thị form
+router.get('/reset-password', async (req, res) => {
+  try {
+    const { token } = req.query;
+    
+    if (!token) {
+      req.flash('error', 'Token đặt lại mật khẩu không hợp lệ');
+      return res.redirect('/auth/forgot-password');
+    }
+
+    // Kiểm tra token
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      req.flash('error', 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+      return res.redirect('/auth/forgot-password');
+    }
+
+    res.render('auth/reset-password', { 
+      layout: 'layouts/main',
+      title: 'Đặt lại mật khẩu',
+      token: token
+    });
+  } catch (error) {
+    console.error('Reset password page error:', error);
+    req.flash('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
+    res.redirect('/auth/forgot-password');
+  }
+});
+
+// Reset mật khẩu - xử lý
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+    
+    if (!token || !password || !confirmPassword) {
+      req.flash('error', 'Vui lòng điền đầy đủ thông tin');
+      return res.redirect(`/auth/reset-password?token=${token}`);
+    }
+
+    if (password !== confirmPassword) {
+      req.flash('error', 'Mật khẩu xác nhận không khớp');
+      return res.redirect(`/auth/reset-password?token=${token}`);
+    }
+
+    if (password.length < 6) {
+      req.flash('error', 'Mật khẩu phải có ít nhất 6 ký tự');
+      return res.redirect(`/auth/reset-password?token=${token}`);
+    }
+
+    // Tìm user với token
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      req.flash('error', 'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+      return res.redirect('/auth/forgot-password');
+    }
+
+    // Cập nhật mật khẩu
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    req.flash('success', 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bây giờ.');
+    res.redirect('/auth/login');
+  } catch (error) {
+    console.error('Reset password error:', error);
+    req.flash('error', 'Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại sau.');
+    res.redirect('/auth/forgot-password');
+  }
 });
 
 module.exports = router;

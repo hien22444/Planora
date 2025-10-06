@@ -55,6 +55,14 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  passwordResetToken: {
+    type: String,
+    default: null
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null
+  },
   avatar: {
     type: String,
     default: 'https://via.placeholder.com/80x80/3b5998/ffffff?text=Avatar'

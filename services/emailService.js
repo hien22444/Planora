@@ -105,7 +105,72 @@ const sendOrderNotification = async (email, orderDetails) => {
   }
 };
 
+// Gửi email reset password
+const sendPasswordResetEmail = async (email, resetToken) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER || 'your-email@gmail.com',
+      to: email,
+      subject: 'Đặt lại mật khẩu Planora',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Planora</h1>
+            <p style="margin: 10px 0 0 0;">Nền tảng thuê dịch vụ sự kiện</p>
+          </div>
+          
+          <div style="padding: 30px; background: #f8f9fa;">
+            <h2 style="color: #333; margin-bottom: 20px;">Đặt lại mật khẩu</h2>
+            <p style="color: #666; line-height: 1.6;">
+              Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>${email}</strong>.
+              Để đặt lại mật khẩu, vui lòng click vào nút bên dưới.
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}" 
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                        color: white; 
+                        padding: 15px 30px; 
+                        text-decoration: none; 
+                        border-radius: 8px; 
+                        display: inline-block;
+                        font-weight: bold;">
+                Đặt lại mật khẩu
+              </a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              Nếu nút không hoạt động, bạn có thể copy link sau vào trình duyệt:<br>
+              <a href="${process.env.BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}" 
+                 style="color: #667eea; word-break: break-all;">
+                ${process.env.BASE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}
+              </a>
+            </p>
+            
+            <p style="color: #666; font-size: 14px; margin-top: 20px;">
+              Link này sẽ hết hạn sau 1 giờ. Nếu bạn không yêu cầu đặt lại mật khẩu, 
+              vui lòng bỏ qua email này.
+            </p>
+          </div>
+          
+          <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 14px;">
+            <p style="margin: 0;">© 2024 Planora. Tất cả quyền được bảo lưu.</p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Password reset email sent to:', email);
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending password reset email:', error);
+    return false;
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
-  sendOrderNotification
+  sendOrderNotification,
+  sendPasswordResetEmail
 };

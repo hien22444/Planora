@@ -456,7 +456,7 @@ router.post('/order', requireAuth, async (req, res) => {
             eventDate: cleanInput(req.body.eventDate) || cleanInput(firstCartItem.eventDate),
             eventLocation: cleanInput(req.body.eventLocation) || cleanInput(firstCartItem.eventLocation),
             contactPhone: cleanInput(req.body.contactPhone) || cleanInput(req.user.phone),
-            paymentMethod: cleanInput(req.body.paymentMethod) || 'zalopay',
+            paymentMethod: cleanInput(req.body.paymentMethod) || 'vnpay',
             notes: cleanInput(req.body.notes || firstCartItem.notes || '')
         };
 
@@ -477,8 +477,8 @@ router.post('/order', requireAuth, async (req, res) => {
         const contactPhone = formData.contactPhone || req.user.phone;
         console.log('Số điện thoại:', contactPhone);
 
-        const paymentMethod = formData.paymentMethod || 'zalopay';
-        console.log('Phương thức thanh toán:', paymentMethod); // Default to zalopay
+        const paymentMethod = formData.paymentMethod || 'vnpay';
+        console.log('Phương thức thanh toán:', paymentMethod); // Default to vnpay
 
         // Validate event location 
         if (!eventLocation || !formData.eventLocation || eventLocation.trim() === '') {
@@ -525,7 +525,7 @@ router.post('/order', requireAuth, async (req, res) => {
         }
 
         // Validate payment method
-        if (!['zalopay', 'bank_transfer'].includes(paymentMethod)) {
+        if (!['vnpay', 'bank_transfer'].includes(paymentMethod)) {
             return res.status(400).json({
                 success: false,
                 error: 'Phương thức thanh toán không hợp lệ'
@@ -592,16 +592,17 @@ router.post('/order', requireAuth, async (req, res) => {
             try {
                 console.log('Creating VNPay order...');
                 const amount = Math.round(Math.abs(order.totalAmount));
+                const orderInfo = `Thanh toan don hang ${order._id}`;
                 console.log('VNPay order data:', {
                     orderId: order._id.toString(),
                     amount: amount,
-                    orderInfo: `Thanh toan don hang #${order._id}`
+                    orderInfo: orderInfo
                 });
 
                 const paymentUrl = await vnPayService.createVNPayUrl(
                     order._id.toString(),
                     amount,
-                    `Thanh toan don hang #${order._id}`
+                    orderInfo
                 );
 
                 console.log('VNPay URL created:', paymentUrl);
@@ -637,19 +638,29 @@ router.post('/order', requireAuth, async (req, res) => {
 
 router.get('/vnpay-return', async (req, res) => {
     try {
+        console.log('=== VNPAY RETURN CALLBACK ===');
+        console.log('Query params:', req.query);
+        
         const vnpParams = req.query;
         const isValidSignature = vnPayService.verifyReturnUrl(vnpParams);
+        
+        console.log('Signature validation:', isValidSignature);
 
         if (isValidSignature) {
             const orderId = vnpParams['vnp_TxnRef'];
             const vnpResponseCode = vnpParams['vnp_ResponseCode'];
+            
+            console.log('Order ID:', orderId);
+            console.log('Response Code:', vnpResponseCode);
 
             if (vnpResponseCode === '00') {
-                await Order.findByIdAndUpdate(orderId, {
+                const updatedOrder = await Order.findByIdAndUpdate(orderId, {
                     status: 'paid',
                     paymentStatus: 'completed',
                     paymentDetails: vnpParams
-                });
+                }, { new: true });
+                
+                console.log('Order updated successfully:', updatedOrder);
                 req.flash('success', 'Thanh toán thành công');
             } else {
                 await Order.findByIdAndUpdate(orderId, {
@@ -660,6 +671,7 @@ router.get('/vnpay-return', async (req, res) => {
                 req.flash('error', 'Thanh toán thất bại');
             }
         } else {
+            console.log('Invalid signature');
             req.flash('error', 'Chữ ký không hợp lệ');
         }
 

@@ -38,16 +38,19 @@ const orderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'refunded'],
+    enum: ['pending', 'paid', 'completed', 'failed', 'refunded'],
     default: 'pending'
   },
   paymentMethod: {
     type: String,
-    enum: ['momo', 'zalopay', 'card', 'cash'],
+    enum: ['vnpay', 'momo', 'zalopay', 'card', 'cash'],
     required: true
   },
   paymentId: {
     type: String
+  },
+  paymentDetails: {
+    type: mongoose.Schema.Types.Mixed
   },
   eventDate: {
     type: Date,
