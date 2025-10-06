@@ -51,59 +51,6 @@
   <h3 style="text-align:center;">📊 Doanh thu theo dịch vụ</h3>
   <canvas id="serviceChart"></canvas>
 </div>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>💰 Dashboard Tổng Doanh Số</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; }
-    h1 { text-align: center; color: #2980b9; margin-bottom: 20px; }
-
-    .summary-container { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
-    .summary-card { background: white; border-radius: 10px; padding: 20px; flex: 1 1 250px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .summary-card h2 { margin: 0; font-size: 2em; color: #3498db; }
-    .summary-card p { margin: 5px 0 0; font-weight: bold; color: #555; }
-
-    .btn-toggle { margin: 0 10px 20px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
-    .btn-toggle:hover { background: #2980b9; }
-
-    .chart-container { width: 90%; max-width: 1000px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
-    table { width: 100%; border-collapse: collapse; background: white; margin: 20px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden; }
-    th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
-    th { background: #3498db; color: white; }
-    tr:hover { background: #f1faff; }
-
-    .btn-reset { display: block; margin: 10px auto 20px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
-    .btn-reset:hover { background: #2980b9; }
-  </style>
-</head>
-<body>
-
-<h1>💰 Dashboard Tổng Doanh Số Dịch Vụ</h1>
-
-<div class="summary-container">
-  <div class="summary-card">
-    <h2><%= totalSold %></h2>
-    <p>Tổng số lượng bán</p>
-  </div>
-  <div class="summary-card">
-    <h2><%= totalRevenue.toLocaleString() %> VND</h2>
-    <p>Tổng doanh thu</p>
-  </div>
-</div>
-
-<div style="text-align:center; margin-bottom:20px;">
-  <button class="btn-toggle" id="btnByService">Xem theo dịch vụ</button>
-  <button class="btn-toggle" id="btnByMonth">Xem theo tháng</button>
-</div>
-
-<div class="chart-container" id="serviceChartSection">
-  <h3 style="text-align:center;">📊 Doanh thu theo dịch vụ</h3>
-  <canvas id="serviceChart"></canvas>
-</div>
 
 <div class="chart-container" id="monthChartSection" style="display:none;">
   <h3 style="text-align:center;">📈 Doanh thu theo tháng</h3>
@@ -122,29 +69,15 @@
       <th>Ngày tạo (Order)</th>
     </tr>
   </thead>
-  <tbody id="serviceTableBody">
-    <% if (services && services.length > 0) { %>
-      <% services.forEach(s => { %>
-        <tr>
-          <td><%= s.title %></td>
-          <td><%= s.price.toLocaleString() %> VND</td>
-          <td><%= s.sold %></td>
-          <td><%= s.revenue.toLocaleString() %> VND</td>
-          <td><%= s.orderCreatedAt ? new Date(s.orderCreatedAt).toLocaleDateString('vi-VN') : '-' %></td>
-        </tr>
-      <% }) %>
-    <% } else { %>
-      <tr><td colspan="5">Chưa có doanh số nào</td></tr>
-    <% } %>
-  </tbody>
+  <tbody id="serviceTableBody"></tbody>
 </table>
 
 <script>
-// Server data injected as JSON strings to avoid template parsing issues
-const services = JSON.parse('<%- JSON.stringify(services || []) %>');
-const orders = JSON.parse('<%- JSON.stringify(orders || []) %>');
-const monthlyLabels = JSON.parse('<%- JSON.stringify((monthlyData || []).map(m => m.month)) %>');
-const monthlyRevenue = JSON.parse('<%- JSON.stringify((monthlyData || []).map(m => m.revenue)) %>');
+// Server data
+const services = <%- JSON.stringify(services || []) %>;
+const orders = <%- JSON.stringify(orders || []) %>;
+const monthlyLabels = <%- JSON.stringify((monthlyData || []).map(m => m.month)) %>;
+const monthlyRevenue = <%- JSON.stringify((monthlyData || []).map(m => m.revenue)) %>;
 
 const serviceChartSection = document.getElementById('serviceChartSection');
 const monthChartSection = document.getElementById('monthChartSection');
@@ -168,19 +101,17 @@ function renderTable(data) {
   }
 }
 
-// Khi load trang, hiển thị dịch vụ
+// Load trang mặc định
 renderTable(services);
 serviceChartSection.style.display = 'block';
 monthChartSection.style.display = 'none';
 
-// Toggle chart dịch vụ
+// Toggle chart
 btnByService.addEventListener('click', () => {
   serviceChartSection.style.display = 'block';
   monthChartSection.style.display = 'none';
   renderTable(services);
 });
-
-// Toggle chart tháng
 btnByMonth.addEventListener('click', () => {
   serviceChartSection.style.display = 'none';
   monthChartSection.style.display = 'block';
@@ -188,16 +119,11 @@ btnByMonth.addEventListener('click', () => {
 });
 
 // Chart dịch vụ
-const serviceChart = new Chart(document.getElementById('serviceChart'), {
+new Chart(document.getElementById('serviceChart'), {
   type: 'bar',
   data: {
     labels: services.map(s => s.title),
-    datasets: [{
-      label: 'Doanh thu (VND)',
-      data: services.map(s => s.revenue),
-      backgroundColor: '#3498db',
-      hoverBackgroundColor: '#2980b9'
-    }]
+    datasets: [{ label: 'Doanh thu (VND)', data: services.map(s => s.revenue), backgroundColor: '#3498db', hoverBackgroundColor: '#2980b9' }]
   },
   options: {
     responsive: true,
@@ -205,27 +131,15 @@ const serviceChart = new Chart(document.getElementById('serviceChart'), {
     onClick: (evt, elements) => {
       if (!elements.length) return;
       const index = elements[0].index;
-      const selectedService = services[index];
-      // render bảng chỉ với dịch vụ được chọn
-      renderTable([selectedService]);
+      renderTable([services[index]]);
     }
   }
 });
 
 // Chart tháng
-const monthChart = new Chart(document.getElementById('monthChart'), {
+new Chart(document.getElementById('monthChart'), {
   type: 'line',
-  data: {
-    labels: monthlyLabels,
-    datasets: [{
-      label: 'Doanh thu theo tháng (VND)',
-      data: monthlyRevenue,
-      fill: false,
-      borderColor: '#2980b9',
-      tension: 0.3,
-      pointBackgroundColor: '#3498db'
-    }]
-  },
+  data: { labels: monthlyLabels, datasets: [{ label: 'Doanh thu theo tháng (VND)', data: monthlyRevenue, fill: false, borderColor: '#2980b9', tension: 0.3, pointBackgroundColor: '#3498db' }] },
   options: {
     responsive: true,
     scales: { y: { beginAtZero: true } },
@@ -236,35 +150,24 @@ const monthChart = new Chart(document.getElementById('monthChart'), {
 
       const ordersInMonth = orders.filter(order => {
         const date = new Date(order.createdAt);
-        const monthYear = `${date.getMonth()+1}/${date.getFullYear()}`;
-        return monthYear === selectedMonth;
+        return `${date.getMonth()+1}/${date.getFullYear()}` === selectedMonth;
       });
 
       const serviceMap = {};
       ordersInMonth.forEach(order => {
         order.services.forEach(item => {
           const s = item.service;
-          if (!serviceMap[s._id]) {
-            serviceMap[s._id] = {
-              title: s.title,
-              price: item.price,
-              sold: 0,
-              revenue: 0,
-              orderCreatedAt: order.createdAt
-            };
-          }
+          if (!serviceMap[s._id]) serviceMap[s._id] = { title: s.title, price: item.price, sold: 0, revenue: 0, orderCreatedAt: order.createdAt };
           serviceMap[s._id].sold += item.quantity;
           serviceMap[s._id].revenue += item.price * item.quantity;
         });
       });
-
-      const servicesInMonth = Object.values(serviceMap);
-      renderTable(servicesInMonth);
+      renderTable(Object.values(serviceMap));
     }
   }
 });
 
-// Nút reset bảng
+// Reset bảng
 document.getElementById('resetTable').addEventListener('click', () => renderTable(services));
 </script>
 
