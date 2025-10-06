@@ -1,0 +1,39 @@
+<div class="container">
+    <h1 class="text-center text-warning mb-4">Add New Service</h1>
+    <form action="/services/add" method="POST" enctype="multipart/form-data">
+        <label>Title:</label>
+        <input type="text" name="title" class="form-control" required />
+
+        <label>Description:</label>
+        <textarea name="description" class="form-control"></textarea>
+
+        <label>Price:</label>
+        <input type="number" name="price" step="0.01" class="form-control" required />
+
+        <label>Address:</label>
+        <input type="text" name="address" class="form-control" placeholder="Enter service address" />
+
+    <label>Images (có thể chọn nhiều):</label>
+    <input type="file" name="images" accept="image/*" multiple class="form-control" />
+
+    <label class="mt-2">Video (tùy chọn):</label>
+    <input type="file" name="video" accept="video/*" class="form-control" />
+
+        <label>Status:</label>
+        <select name="status" class="form-select">
+            <option value="active" selected>Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+
+        <label>Category:</label>
+        <select name="category" class="form-select" required>
+            <option value="" disabled selected>-- Chọn category --</option>
+            <% categories.forEach(cat => { %>
+                <option value="<%= cat._id %>"><%= cat.name %></option>
+            <% }) %>
+        </select>
+
+        <button type="submit" class="btn btn-warning mt-3">Add Service</button>
+    </form>
+    <a href="/services" class="d-block mt-3 text-decoration-none">&larr; Back to Services</a>
+</div>

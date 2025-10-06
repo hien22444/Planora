@@ -34,10 +34,8 @@ const requireAdmin = async (req, res, next) => {
     const user = await User.findById(req.session.userId);
     if (!user || user.role !== 'admin') {
       req.flash('error', 'Bạn không có quyền truy cập trang này');
-      if (user && user.role === 'customer') {
+      if (user && (user.role === 'customer' || user.role === 'shop')) {
         return res.redirect('/customer/dashboard');
-      } else if (user && user.role === 'shop') {
-        return res.redirect('/shop/dashboard');
       }
       return res.redirect('/login');
     }

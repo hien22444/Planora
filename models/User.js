@@ -59,6 +59,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://via.placeholder.com/80x80/3b5998/ffffff?text=Avatar'
   },
+  // Shop request/profile — when a user requests to become a shop, data is stored here
+  shopRequested: {
+    type: Boolean,
+    default: false
+  },
+  shopRequest: {
+    shopName: { type: String },
+    description: { type: String },
+    address: { type: String },
+    phone: { type: String },
+    email: { type: String },
+    businessLicense: { type: String },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    requestedAt: { type: Date }
+  },
+  // If user is approved as shop, store shop profile fields here
+  shopName: { type: String },
+  shopAddress: { type: String },
+  shopPhone: { type: String },
+  shopEmail: { type: String },
+  businessLicense: { type: String },
+  rating: { type: Number, default: 0 },
+  totalReviews: { type: Number, default: 0 },
   createdAt: {
     type: Date,
     default: Date.now

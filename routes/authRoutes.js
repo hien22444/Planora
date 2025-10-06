@@ -16,7 +16,7 @@ router.get('/register', (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password, fullName, phone, address, role } = req.body;
+  const { username, email, password, fullName, phone, address } = req.body;
 
     // Kiểm tra user đã tồn tại
     const existingUser = await User.findOne({ 
@@ -33,6 +33,7 @@ router.post('/register', async (req, res) => {
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 giờ
 
     // Tạo user mới
+    // Force role to 'customer' for all registrations. Shop accounts must be requested and approved by admin.
     const user = new User({
       username,
       email,
@@ -40,7 +41,7 @@ router.post('/register', async (req, res) => {
       fullName,
       phone,
       address,
-      role: role || 'customer',
+      role: 'customer',
       emailVerificationToken: verificationToken,
       emailVerificationExpires: verificationExpires
     });
@@ -73,7 +74,7 @@ router.post('/register', async (req, res) => {
 router.get('/login', (req, res) => {
   if (req.user) {
     if (req.user.role === 'admin') return res.redirect('/admin/dashboard');
-    if (req.user.role === 'customer') return res.redirect('/customer/dashboard');
+    if (req.user.role === 'customer' || req.user.role === 'shop') return res.redirect('/customer/dashboard');
   }
   res.render('auth/login', { 
     layout: 'layouts/main',
@@ -117,11 +118,11 @@ router.post('/login', async (req, res) => {
 
     req.flash('success', 'Đăng nhập thành công!');
     
-    // Redirect theo role
+    // Redirect theo role (shops act like customers for dashboard access)
     if (user.role === 'admin') {
       res.redirect('/admin/dashboard');
-    } else if (user.role === 'shop') {
-      res.redirect('/shop/dashboard');
+    } else if (user.role === 'shop' || user.role === 'customer') {
+      res.redirect('/customer/dashboard');
     } else {
       res.redirect('/customer/dashboard');
     }

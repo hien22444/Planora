@@ -13,7 +13,7 @@ const reviewSchema = new mongoose.Schema({
   },
   shop: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
+    ref: 'User',
     required: true
   },
   order: {

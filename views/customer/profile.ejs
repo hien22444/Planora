@@ -148,6 +148,23 @@
                     </div>
                 </div>
 
+                        <!-- Request to become shop -->
+                        <div class="card profile-card mt-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-store me-2"></i>Yêu cầu trở thành Chủ shop</h5>
+                            </div>
+                            <div class="card-body">
+                                <% if (user && user.role === 'shop') { %>
+                                    <div class="alert alert-success">Tài khoản của bạn là Chủ shop.</div>
+                                <% } else { %>
+                                    <p>Bạn có thể gửi yêu cầu để trở thành Chủ shop. Admin sẽ xem xét và duyệt.</p>
+                                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#requestShopModal">
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi yêu cầu
+                                    </button>
+                                <% } %>
+                            </div>
+                        </div>
+
                 <!-- Account Security -->
                 <div class="card profile-card mt-4">
                     <div class="card-header">
@@ -176,5 +193,52 @@
             </div>
         </div>
     </div>
+
+<!-- Request Shop Modal -->
+<div class="modal fade" id="requestShopModal" tabindex="-1" aria-labelledby="requestShopModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="requestShopModalLabel">Yêu cầu trở thành Chủ shop</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="/customer/request-shop">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên shop *</label>
+                        <input type="text" name="shopName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả ngắn *</label>
+                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ shop *</label>
+                        <input type="text" name="address" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Số điện thoại shop *</label>
+                            <input type="tel" name="phone" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email liên hệ *</label>
+                            <input type="email" name="email" class="form-control" value="<%= user ? user.email : '' %>" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giấy phép kinh doanh (liên kết/ghi chú)</label>
+                        <input type="text" name="businessLicense" class="form-control">
+                        <small class="text-muted">Bạn có thể cung cấp link hoặc thông tin giấy phép. Admin sẽ xem xét.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Gửi yêu cầu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 

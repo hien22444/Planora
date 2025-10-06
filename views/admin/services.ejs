@@ -77,9 +77,9 @@
                             <tr>
                                 <td>
                                     <div>
-                                        <strong><%= service.name %></strong>
+                                        <strong><%= service.title %></strong>
                                         <br>
-                                        <small class="text-muted"><%= service.description.substring(0, 50) %>...</small>
+                                        <small class="text-muted"><%= service.description ? service.description.substring(0, 50) : '' %>...</small>
                                     </div>
                                 </td>
                                 <td>
@@ -87,19 +87,13 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-secondary">
-                                        <%= service.category === 'sound' ? 'Âm thanh' :
-                                            service.category === 'lighting' ? 'Ánh sáng' :
-                                            service.category === 'venue' ? 'Địa điểm' :
-                                            service.category === 'furniture' ? 'Bàn ghế' :
-                                            service.category === 'mc' ? 'MC' :
-                                            service.category === 'catering' ? 'Catering' :
-                                            service.category === 'decoration' ? 'Trang trí' : 'Chụp ảnh' %>
+                                        <%= service.category ? service.category.name : 'N/A' %>
                                     </span>
                                 </td>
                                 <td>
                                     <strong><%= service.price.toLocaleString() %> VNĐ</strong>
                                     <br>
-                                    <small class="text-muted">/<%= service.unit %></small>
+                                    <small class="text-muted">/<%= service.address || 'N/A' %></small>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -112,8 +106,8 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-<%= service.isActive ? 'success' : 'danger' %>">
-                                        <%= service.isActive ? 'Hoạt động' : 'Không hoạt động' %>
+                                    <span class="badge bg-<%= service.status === 'active' ? 'success' : 'danger' %>">
+                                        <%= service.status === 'active' ? 'Hoạt động' : 'Không hoạt động' %>
                                     </span>
                                 </td>
                                 <td>
@@ -122,9 +116,9 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <form action="/admin/services/<%= service._id %>/toggle-status" method="POST" class="d-inline">
-                                            <button type="submit" class="btn btn-outline-<%= service.isActive ? 'danger' : 'success' %> btn-sm" 
-                                                    onclick="return confirm('Bạn có chắc muốn <%= service.isActive ? 'vô hiệu hóa' : 'kích hoạt' %> dịch vụ này?')">
-                                                <i class="fas fa-<%= service.isActive ? 'ban' : 'check' %>"></i>
+                                            <button type="submit" class="btn btn-outline-<%= service.status === 'active' ? 'danger' : 'success' %> btn-sm" 
+                                                    data-action="<%= service.status === 'active' ? 'vô hiệu hóa' : 'kích hoạt' %>" onclick="return confirmAction(this)">
+                                                <i class="fas fa-<%= service.status === 'active' ? 'ban' : 'check' %>"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -149,5 +143,11 @@
 function viewService(serviceId) {
     // Implement view service details
     console.log('View service:', serviceId);
+}
+</script>
+<script>
+function confirmAction(btn) {
+    const action = btn.getAttribute('data-action') || 'thao tác';
+    return confirm(`Bạn có chắc muốn ${action} dịch vụ này?`);
 }
 </script>

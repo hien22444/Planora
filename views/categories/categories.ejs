@@ -1,0 +1,61 @@
+<div class="row">
+  <!-- Sidebar -->
+  <div class="col-md-3 mb-4">
+    <div class="list-group shadow-sm">
+      <div class="list-group-item active bg-primary">
+        <strong><%= user ? user.username : "Khách" %></strong>
+        <% if (user) { %>
+          <br><span class="small text-light"><%= user.role %></span>
+        <% } %>
+      </div>
+      <a href="/services" class="list-group-item list-group-item-action">
+        <i class="fas fa-cogs me-2"></i>Services
+      </a>
+      <a href="/categories" class="list-group-item list-group-item-action">
+        <i class="fas fa-tags me-2"></i>Categories
+      </a>
+      <a href="/logout" class="list-group-item list-group-item-action text-danger">
+        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+      </a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="col-md-9">
+    <h1 class="mb-4 text-primary text-center">
+      <i class="fas fa-tags me-2"></i>Category List
+    </h1>
+
+    <a href="/categories/add" class="btn btn-success mb-3">
+      <i class="fas fa-plus"></i> Add Category
+    </a>
+
+    <div class="table-responsive shadow-sm">
+      <table class="table table-bordered align-middle">
+        <thead class="table-warning">
+          <tr>
+            <th>Name</th>
+            <th style="width: 150px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% categories.forEach(cat => { %>
+            <tr>
+              <td><%= cat.name %></td>
+              <td>
+                <a href="/categories/edit/<%= cat._id %>" class="btn btn-sm btn-primary">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <form action="/categories/delete/<%= cat._id %>" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

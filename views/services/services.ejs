@@ -1,0 +1,118 @@
+<div class="row">
+  <!-- Sidebar -->
+  <div class="col-md-3 mb-4">
+    <div class="list-group shadow-sm">
+      <div class="list-group-item active bg-primary">
+        <strong><%= user ? user.username : "Khách" %></strong>
+        <% if (user) { %>
+          <br><span class="small text-light"><%= user.role %></span>
+        <% } %>
+      </div>
+      <a href="/" class="list-group-item list-group-item-action">
+        <i class="fas fa-home me-2"></i>Trang chủ
+      </a>
+      <% if (user && user.role === 'shop') { %>
+        <a href="/services/add" class="list-group-item list-group-item-action">
+          <i class="fas fa-plus me-2"></i>Thêm Service
+        </a>
+        <a href="/categories" class="list-group-item list-group-item-action">
+          <i class="fas fa-layer-group me-2"></i>Thêm Category
+        </a>
+      <% } %>
+      <a href="/customer/orders" class="list-group-item list-group-item-action">
+        <i class="fas fa-receipt me-2"></i>Đơn hàng
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="col-md-9">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="text-primary mb-0">
+        <i class="fas fa-list me-2"></i>Danh sách Service
+      </h1>
+      <% if (user && user.role === 'shop') { %>
+        <a href="/services/sales" class="btn btn-success">
+          <i class="fas fa-chart-line me-1"></i> Xem Doanh Số
+        </a>
+      <% } %>
+    </div>
+
+    <div class="row">
+      <% services.forEach(s => { %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100 shadow-sm position-relative">
+            <div class="position-absolute top-0 end-0 m-2">
+              <span class="badge <%= s.status === 'active' ? 'bg-success' : 'bg-danger' %>">
+                <%= s.status %>
+              </span>
+            </div>
+
+            <img 
+              src="<%= (s.images && s.images.length) ? s.images[0] : '/images/default-service.jpg' %>" 
+              class="card-img-top" 
+              style="height: 180px; object-fit: cover;" 
+              alt="Service image"
+            >
+
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">
+                <a href="/services/<%= s._id %>" class="text-decoration-none">
+                  <%= s.title %>
+                </a>
+              </h5>
+
+              <p class="text-muted mb-1">
+                <i class="fas fa-tag me-1"></i>Category: 
+                <%= s.category ? s.category.name : 'N/A' %>
+              </p>
+
+              <p class="small flex-grow-1"><%= s.description %></p>
+
+              <p class="text-muted small mb-2">
+                <i class="fas fa-store me-1"></i>
+                <%= s.shop ? (s.shop.shopName || s.shop.username) : 'N/A' %><br>
+                <i class="fas fa-calendar-alt me-1"></i>
+                <%= s.createdAt ? new Date(s.createdAt).toLocaleDateString('vi-VN') : '' %>
+              </p>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-primary">
+                  <%= (typeof s.price === 'number') 
+                    ? s.price.toLocaleString('vi-VN') + ' VNĐ' 
+                    : (s.price || '') %>
+                </span>
+
+                <div class="btn-group">
+                  <!-- Nút xem doanh số từng sản phẩm -->
+                  <a href="/services/sales/<%= s._id %>" 
+                     class="btn btn-sm btn-outline-success" 
+                     title="Xem doanh số">
+                    <i class="fas fa-chart-bar"></i>
+                  </a>
+
+                  <a href="/services/edit/<%= s._id %>" 
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i>
+                  </a>
+
+                  <form action="/services/delete/<%= s._id %>" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Hiển thị lượt bán -->
+              <div class="mt-2 text-muted small">
+                <i class="fas fa-shopping-cart me-1"></i> 
+                Đã bán: <strong><%= s.soldCount || 0 %></strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>

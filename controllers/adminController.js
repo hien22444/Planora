@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const Shop = require('../models/Shop');
+// Shop model removed — shop is represented by User.role and User.shopRequest
 const Service = require('../models/Service');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
@@ -8,7 +8,8 @@ exports.dashboard = async (req, res) => {
   try {
     // Thống kê tổng quan
     const userCount = await User.countDocuments();
-    const shopCount = await Shop.countDocuments();
+  // Count shops as users with role 'shop'
+  const shopCount = await User.countDocuments({ role: 'shop' });
     const serviceCount = await Service.countDocuments();
     const orderCount = await Order.countDocuments();
 
@@ -38,7 +39,7 @@ exports.dashboard = async (req, res) => {
     }
 
     // Cảnh báo
-    const pendingShops = await Shop.countDocuments({ status: 'pending' });
+  const pendingShops = await User.countDocuments({ 'shopRequested': true, 'shopRequest.status': 'pending' });
     const reportedReviews = await Review.countDocuments({ isReported: true });
     const alerts = [];
     
@@ -143,19 +144,26 @@ exports.toggleUserStatus = async (req, res) => {
 exports.manageShops = async (req, res) => {
   try {
     const { status, search } = req.query;
-    let query = {};
+    let query;
 
-    if (status) query.status = status;
+    if (status) {
+      // filter by status on shopRequest
+      query = { 'shopRequest.status': status };
+    } else {
+      // show approved shops and pending requests
+      query = { $or: [ { role: 'shop' }, { shopRequested: true } ] };
+    }
     if (search) {
       query.$or = [
-        { shopName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { 'shopRequest.shopName': { $regex: search, $options: 'i' } },
+        { 'shopRequest.email': { $regex: search, $options: 'i' } },
+        { fullName: { $regex: search, $options: 'i' } }
       ];
     }
 
-    const shops = await Shop.find(query)
-      .populate('owner', 'fullName email phone')
-      .sort({ createdAt: -1 });
+    const shops = await User.find(query)
+      .select('fullName email phone shopRequest role shopRequested createdAt')
+      .sort({ 'shopRequest.requestedAt': -1 });
 
     res.render("admin/shops", {
       title: "Shop",
@@ -177,16 +185,27 @@ exports.manageShops = async (req, res) => {
 
 exports.approveShop = async (req, res) => {
   try {
-    const shop = await Shop.findById(req.params.id);
-    if (!shop) {
-      req.flash('error', 'Shop không tồn tại');
+    // req.params.id is user id (we changed admin routes to pass user id)
+    const user = await User.findById(req.params.id);
+    if (!user || !user.shopRequested || !user.shopRequest) {
+      req.flash('error', 'Yêu cầu shop không tồn tại');
       return res.redirect('/admin/shops');
     }
 
-    shop.status = 'approved';
-    await shop.save();
+  user.shopRequest.status = 'approved';
+  user.shopRequested = false; // clear request flag
+  user.role = 'shop';
+  // copy request data into shop profile fields for easy population
+  user.shopName = user.shopRequest.shopName;
+  user.shopAddress = user.shopRequest.address;
+  user.shopPhone = user.shopRequest.phone || user.phone;
+  user.shopEmail = user.shopRequest.email || user.email;
+  user.businessLicense = user.shopRequest.businessLicense || user.businessLicense;
+  user.rating = user.rating || 0;
+  user.totalReviews = user.totalReviews || 0;
+  await user.save();
 
-    req.flash('success', 'Đã duyệt shop');
+    req.flash('success', 'Đã duyệt yêu cầu và cấp quyền Chủ shop cho người dùng');
     res.redirect('/admin/shops');
   } catch (error) {
     console.error('Approve shop error:', error);
@@ -197,16 +216,17 @@ exports.approveShop = async (req, res) => {
 
 exports.rejectShop = async (req, res) => {
   try {
-    const shop = await Shop.findById(req.params.id);
-    if (!shop) {
-      req.flash('error', 'Shop không tồn tại');
+    const user = await User.findById(req.params.id);
+    if (!user || !user.shopRequested || !user.shopRequest) {
+      req.flash('error', 'Yêu cầu shop không tồn tại');
       return res.redirect('/admin/shops');
     }
 
-    shop.status = 'rejected';
-    await shop.save();
+    user.shopRequest.status = 'rejected';
+    user.shopRequested = false;
+    await user.save();
 
-    req.flash('success', 'Đã từ chối shop');
+    req.flash('success', 'Đã từ chối yêu cầu Chủ shop');
     res.redirect('/admin/shops');
   } catch (error) {
     console.error('Reject shop error:', error);
@@ -221,17 +241,20 @@ exports.manageServices = async (req, res) => {
     let query = {};
 
     if (category) query.category = category;
-    if (status !== undefined) query.isActive = status === 'active';
+    if (status !== undefined) query.status = status === 'active' ? 'active' : 'inactive';
     if (search) {
-      query.name = { $regex: search, $options: 'i' };
+      query.title = { $regex: search, $options: 'i' };
     }
 
     const services = await Service.find(query)
       .populate('shop', 'shopName')
+      .populate('category', 'name')
       .sort({ createdAt: -1 })
       .limit(100);
 
-    const categories = ['sound', 'lighting', 'venue', 'furniture', 'mc', 'catering', 'decoration', 'photography'];
+  // Load categories from DB
+  const Category = require('../models/Category');
+  const categories = await Category.find().sort({ name: 1 });
 
     res.render("admin/services", {
       title: "Dịch vụ",
@@ -263,10 +286,10 @@ exports.toggleServiceStatus = async (req, res) => {
       return res.redirect('/admin/services');
     }
 
-    service.isActive = !service.isActive;
-    await service.save();
+  service.status = service.status === 'active' ? 'inactive' : 'active';
+  await service.save();
 
-    req.flash('success', `Đã ${service.isActive ? 'kích hoạt' : 'vô hiệu hóa'} dịch vụ`);
+  req.flash('success', `Đã ${service.status === 'active' ? 'kích hoạt' : 'vô hiệu hóa'} dịch vụ`);
     res.redirect('/admin/services');
   } catch (error) {
     console.error('Toggle service status error:', error);
@@ -292,7 +315,7 @@ exports.manageOrders = async (req, res) => {
     const orders = await Order.find(query)
       .populate('customer', 'fullName email phone')
       .populate('shop', 'shopName')
-      .populate('services.service', 'name')
+    .populate('services.service', 'title')
       .sort({ createdAt: -1 })
       .limit(100);
 
@@ -411,10 +434,12 @@ exports.reports = async (req, res) => {
       { $limit: 5 }
     ]);
 
-    // Thống kê shop
-    const shopStats = await Shop.aggregate([
-      { $lookup: { from: 'orders', localField: '_id', foreignField: 'shop', as: 'orders' } },
-      { $project: { shopName: 1, orderCount: { $size: '$orders' } } },
+    // Thống kê shop (theo user.role === 'shop' và dựa trên services -> orders)
+    const shopStats = await Service.aggregate([
+      { $group: { _id: '$shop', serviceCount: { $sum: 1 } } },
+      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'shopUser' } },
+      { $unwind: { path: '$shopUser', preserveNullAndEmptyArrays: true } },
+      { $project: { shopName: '$shopUser.fullName', orderCount: '$serviceCount' } },
       { $sort: { orderCount: -1 } },
       { $limit: 5 }
     ]);

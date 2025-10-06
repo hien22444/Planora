@@ -79,6 +79,14 @@
                             <i class="fas fa-shopping-cart me-1"></i>Giỏ hàng
                         </a>
                     </li>
+                    <% if (user && user.role === 'shop') { %>
+                        <!-- Shop có nút Đăng dịch vụ -->
+                        <li class="nav-item">
+                        <a class="nav-link btn btn-outline-primary ms-2 px-3" href="/services">
+                        <i class="fas fa-plus me-1"></i>Xem dịch vụ
+                    </a>
+                    </li>
+                    <% } %>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user me-1"></i><%= user ? user.fullName : 'Tài khoản' %>
@@ -128,13 +136,13 @@
             <h2 class="text-center mb-5">Danh mục dịch vụ</h2>
             <div class="text-center">
                 <a href="/customer/services" class="btn btn-outline-primary category-btn">Tất cả</a>
-                <a href="/customer/services?category=sound" class="btn btn-outline-primary category-btn">Âm thanh</a>
-                <a href="/customer/services?category=lighting" class="btn btn-outline-primary category-btn">Ánh sáng</a>
-                <a href="/customer/services?category=furniture" class="btn btn-outline-primary category-btn">Nội thất</a>
-                <a href="/customer/services?category=decoration" class="btn btn-outline-primary category-btn">Trang trí</a>
-                <a href="/customer/services?category=photography" class="btn btn-outline-primary category-btn">Nhiếp ảnh</a>
-                <a href="/customer/services?category=videography" class="btn btn-outline-primary category-btn">Quay phim</a>
-                <a href="/customer/services?category=entertainment" class="btn btn-outline-primary category-btn">Giải trí</a>
+                <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                    <% categories.forEach(cat => { %>
+                        <a href="/customer/services?category=<%= cat._id %>" class="btn btn-outline-primary category-btn"><%= cat.name %></a>
+                    <% }) %>
+                <% } else { %>
+                    <!-- No categories loaded -->
+                <% } %>
             </div>
         </div>
     </section>
@@ -148,20 +156,23 @@
                     <% services.slice(0, 6).forEach(service => { %>
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card service-card h-100">
-                                <div class="card-img-top bg-primary text-white text-center py-5">
-                                    <i class="fas fa-<%= service.category === 'sound' ? 'volume-up' : 
-                                        service.category === 'lighting' ? 'lightbulb' :
-                                        service.category === 'furniture' ? 'chair' :
-                                        service.category === 'decoration' ? 'palette' :
-                                        service.category === 'photography' ? 'camera' :
-                                        service.category === 'videography' ? 'video' :
-                                        'star' %> fa-3x"></i>
-                                </div>
+                                <div class="card-img-top text-center">
+                                    <% if (service.images && service.images.length > 0) { %>
+                                        <img src="<%= service.images[0] %>" alt="Service Image" 
+                                    class="img-fluid rounded-top" 
+                                    style="object-fit: cover; width: 100%; height: 200px;">
+                                    <% } else { %>
+                                    <img src="/images/default-service.jpg" alt="Default Image" 
+                                    class="img-fluid rounded-top" 
+                                    style="object-fit: cover; width: 100%; height: 200px;">
+                                <% } %>
+                            </div>
+
                                 <div class="card-body">
-                                    <h5 class="card-title"><%= service.name %></h5>
-                                    <p class="card-text text-muted"><%= service.description.substring(0, 100) %>...</p>
+                                        <h5 class="card-title"><%= service.title %></h5>
+                                        <p class="card-text text-muted"><%= service.description ? service.description.substring(0, 100) : '' %>...</p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="h5 text-primary mb-0"><%= service.price.toLocaleString() %> VNĐ</span>
+                                            <span class="h5 text-primary mb-0"><%= service.price.toLocaleString() %> VNĐ</span>
                                         <small class="text-muted">
                                             <i class="fas fa-star text-warning"></i>
                                             <%= service.rating || 0 %> (<%= service.totalReviews || 0 %> đánh giá)

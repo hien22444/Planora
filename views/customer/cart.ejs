@@ -91,23 +91,27 @@
             <div class="row">
                 <!-- Cart Items -->
                 <div class="col-lg-8">
-                    <% cart.forEach((item, index) => { %>
+                    <% cart.forEach(function(item, index) { %>
                         <div class="card cart-item mb-3">
                             <div class="card-body">
                                 <div class="row align-items-center">
                                     <div class="col-md-2">
                                         <div class="bg-primary text-white text-center py-4 rounded">
-                                            <i class="fas fa-<%= item.service.category === 'sound' ? 'volume-up' : 
-                                                item.service.category === 'lighting' ? 'lightbulb' :
-                                                item.service.category === 'furniture' ? 'chair' :
-                                                item.service.category === 'decoration' ? 'palette' :
-                                                item.service.category === 'photography' ? 'camera' :
-                                                item.service.category === 'videography' ? 'video' :
-                                                'star' %> fa-2x"></i>
+                                            <% 
+                                                let icon = 'star';
+                                                const catName = item.service && item.service.category && item.service.category.name;
+                                                if (catName === 'sound') icon = 'volume-up';
+                                                else if (catName === 'lighting') icon = 'lightbulb';
+                                                else if (catName === 'furniture') icon = 'chair';
+                                                else if (catName === 'decoration') icon = 'palette';
+                                                else if (catName === 'photography') icon = 'camera';
+                                                else if (catName === 'videography') icon = 'video';
+                                            %>
+                                            <i class="fas fa-<%= icon %> fa-2x"></i>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <h5 class="card-title mb-1"><%= item.service.name %></h5>
+                                        <h5 class="card-title mb-1"><%= item.service.title %></h5>
                                         <p class="text-muted mb-1"><%= item.service.shop.shopName %></p>
                                         <div class="d-flex align-items-center">
                                             <div class="text-warning me-2">
@@ -120,16 +124,13 @@
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">Số lượng</label>
-                                        <input type="number" class="form-control quantity-input" 
-                                               value="<%= item.quantity %>" min="1" 
-                                               onchange="updateQuantity(<%= index %>, this.value)">
+                         <input type="number" class="form-control quantity-input" 
+                             value="<%= item.quantity %>" min="1" 
+                             data-index="<%= index %>">
                                     </div>
                                     <div class="col-md-2 text-end">
                                         <div class="h5 text-primary mb-1"><%= (item.service.price * item.quantity).toLocaleString() %> VNĐ</div>
-                                        <small class="text-muted"><%= item.service.price.toLocaleString() %> VNĐ/<%= item.service.unit === 'event' ? 'sự kiện' : 
-                                            item.service.unit === 'day' ? 'ngày' : 
-                                            item.service.unit === 'hour' ? 'giờ' : 
-                                            item.service.unit === 'person' ? 'người' : 'bộ' %></small>
+                                        <small class="text-muted"><%= item.service.price.toLocaleString() %> VNĐ</small>
                                     </div>
                                 </div>
                             </div>
@@ -221,6 +222,16 @@
             // For now, just update the display
             location.reload();
         }
+
+        // Attach listeners to quantity inputs (avoid inline EJS in attributes)
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.quantity-input').forEach(function(inp) {
+                inp.addEventListener('change', function(e) {
+                    const idx = inp.dataset.index;
+                    updateQuantity(idx, e.target.value);
+                });
+            });
+        });
     </script>
 </body>
 </html>

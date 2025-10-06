@@ -3,9 +3,12 @@ const Service = require('../models/Service');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
 const User = require('../models/User');
+const Category = require('../models/Category');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Shop model removed: shop is represented via User.role + User.shopRequest
 
 // Test customer page
 router.get('/test', (req, res) => {
@@ -105,11 +108,17 @@ router.get('/dashboard', requireAuth, async (req, res) => {
     console.log('Customer dashboard - User:', req.user ? req.user.fullName : 'Not logged in');
     console.log('Customer dashboard - Role:', req.user ? req.user.role : 'No role');
     
-    // Lấy dịch vụ nổi bật
-    const services = await Service.find({ isActive: true })
+    // Lấy danh mục từ database
+    const categories = await Category.find().sort({ name: 1 });
+
+    // Lấy dịch vụ nổi bật (populate shop + category)
+    const services = await Service.find({ status: 'active' })
       .populate('shop', 'shopName rating')
-      .sort({ rating: -1, totalReviews: -1 })
+      .populate('category', 'name')
+      .sort({ createdAt: -1 })
       .limit(12);
+
+    console.log('Dashboard - loaded categories:', categories.length, 'services:', services.length);
 
     // Lấy đơn hàng gần đây
     const recentOrders = await Order.find({ customer: req.user._id })
@@ -122,6 +131,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       title: 'Thuê dịch vụ sự kiện',
       user: req.user,
       services,
+      categories,
       recentOrders
     });
   } catch (error) {
@@ -135,11 +145,19 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 router.get('/services', async (req, res) => {
   try {
     const { category, minPrice, maxPrice, search } = req.query;
-    let query = { isActive: true };
+  let query = { status: 'active' };
 
     // Filter theo category
     if (category) {
-      query.category = category;
+      // category may be an ObjectId (from links) or a name string
+      const mongoose = require('mongoose');
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        query.category = category;
+      } else {
+        // try find category by name
+        const catDoc = await Category.findOne({ name: category });
+        if (catDoc) query.category = catDoc._id;
+      }
     }
 
     // Filter theo giá
@@ -149,16 +167,20 @@ router.get('/services', async (req, res) => {
       if (maxPrice) query.price.$lte = parseInt(maxPrice);
     }
 
-    // Search theo tên
+    // Search theo tiêu đề
     if (search) {
-      query.name = { $regex: search, $options: 'i' };
+      query.title = { $regex: search, $options: 'i' };
     }
 
     const services = await Service.find(query)
       .populate('shop', 'shopName rating')
+      .populate('category', 'name')
       .sort({ createdAt: -1 });
 
-    const categories = ['sound', 'lighting', 'furniture', 'decoration', 'photography', 'videography', 'entertainment'];
+    console.log('Services list - query:', JSON.stringify(query), 'found:', services.length);
+
+    // Load categories from DB
+    const categories = await Category.find().sort({ name: 1 });
 
     res.render('customer/services', {
       title: 'Tìm dịch vụ sự kiện',
@@ -182,6 +204,7 @@ router.get('/services/:id', async (req, res) => {
   try {
     const service = await Service.findById(req.params.id)
       .populate('shop', 'shopName rating totalReviews')
+      .populate('category', 'name')
       .populate({
         path: 'reviews',
         populate: {
@@ -201,7 +224,7 @@ router.get('/services/:id', async (req, res) => {
       .sort({ createdAt: -1 }) || [];
 
     res.render('customer/service-detail', {
-      title: service.name,
+      title: service.title,
       user: req.user,
       service,
       reviews
@@ -806,6 +829,47 @@ router.get('/reviews/:orderId', requireAuth, async (req, res) => {
           } catch (error) {
             console.error('Update profile error:', error);
             req.flash('error', 'Có lỗi xảy ra khi cập nhật thông tin');
+            res.redirect('/customer/profile');
+          }
+        });
+
+        // Request to become shop (store request in User.shopRequest)
+        router.post('/request-shop', requireAuth, async (req, res) => {
+          try {
+            const { shopName, description, address, phone, email, businessLicense } = req.body;
+
+            // Basic validation
+            if (!shopName || !description || !address || !phone || !email) {
+              req.flash('error', 'Vui lòng điền đầy đủ các trường bắt buộc');
+              return res.redirect('/customer/profile');
+            }
+
+            // Check if user already requested or is a shop
+            const user = await User.findById(req.user._id);
+            if (user.role === 'shop' || user.shopRequested) {
+              req.flash('warning', 'Bạn đã gửi yêu cầu hoặc đã là Chủ shop.');
+              return res.redirect('/customer/profile');
+            }
+
+            user.shopRequested = true;
+            user.shopRequest = {
+              shopName,
+              description,
+              address,
+              phone,
+              email,
+              businessLicense: businessLicense || '',
+              status: 'pending',
+              requestedAt: new Date()
+            };
+
+            await user.save();
+
+            req.flash('success', 'Yêu cầu trở thành Chủ shop đã được gửi. Admin sẽ xem xét và duyệt trong thời gian sớm nhất.');
+            res.redirect('/customer/profile');
+          } catch (error) {
+            console.error('Request shop error:', error);
+            req.flash('error', 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.');
             res.redirect('/customer/profile');
           }
         });

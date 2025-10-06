@@ -69,7 +69,7 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <strong><%= review.service.name %></strong>
+                                        <strong><%= review.service ? review.service.title : '' %></strong>
                                     </div>
                                 </td>
                                 <td>
@@ -110,7 +110,7 @@
                                         </button>
                                         <form action="/admin/reviews/<%= review._id %>/toggle-visibility" method="POST" class="d-inline">
                                             <button type="submit" class="btn btn-outline-<%= review.isVisible ? 'warning' : 'success' %> btn-sm" 
-                                                    onclick="return confirm('Bạn có chắc muốn <%= review.isVisible ? 'ẩn' : 'hiển thị' %> đánh giá này?')">
+                                                    data-action="<%= review.isVisible ? 'ẩn' : 'hiển thị' %>" onclick="return confirmAction(this)">
                                                 <i class="fas fa-<%= review.isVisible ? 'eye-slash' : 'eye' %>"></i>
                                             </button>
                                         </form>

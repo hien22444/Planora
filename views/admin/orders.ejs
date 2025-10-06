@@ -92,8 +92,8 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <% order.services.forEach((service, index) => { %>
-                                            <small><%= service.service.name %> x <%= service.quantity %></small>
+                                            <% order.services.forEach((service, index) => { %>
+                                            <small><%= service.service ? service.service.title : 'N/A' %> x <%= service.quantity %></small>
                                             <% if (index < order.services.length - 1) { %><br><% } %>
                                         <% }) %>
                                     </div>
