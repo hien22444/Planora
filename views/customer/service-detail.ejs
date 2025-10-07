@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= service.title %> - Planora</title>
+
+    <!-- ✅ CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==== Hero Section ==== */
+        .service-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+
+        /* ==== Cards ==== */
+        .service-card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .price-badge {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* ==== Reviews ==== */
+        .review-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .stars {
+            color: #ffc107;
+        }
+
+        /* ==== Gallery ==== */
+        .main-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .thumbnail-list {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .thumbnail-list img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            opacity: 0.8;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .thumbnail-list img:hover,
+        .thumbnail-list img.active {
+            opacity: 1;
+            border-color: #667eea;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ✅ Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-calendar-alt me-2"></i>Planora
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/customer/dashboard"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/customer/services"><i class="fas fa-search me-1"></i>Tìm dịch vụ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/customer/orders"><i class="fas fa-list me-1"></i>Đơn hàng</a></li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/customer/cart"><i class="fas fa-shopping-cart me-1"></i>Giỏ hàng</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><%= user ? user.fullName : 'Tài khoản' %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/customer/profile"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
+                        
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ✅ Hero -->
+    <div class="service-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-3"><%= service.title %></h1>
+                    <p class="lead mb-3"><%= service.description %></p>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-light text-dark me-3">
+                            <i class="fas fa-store me-1"></i><%= service.shop.shopName %>
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-tag me-1"></i><%= service.category ? service.category.name : '' %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 text-center">
+                    <div class="price-badge text-white">
+                        <%= service.price.toLocaleString() %> VNĐ
+                        <small class="d-block">/<%= service.address || 'Địa chỉ không có' %></small>
+                        <p class="mt-2">
+                            <i class="fas fa-shopping-bag"></i> Đã bán: <%= service.soldCount || 0 %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ Main content -->
+    <div class="container my-5">
+        <div class="row">
+            
+            <!-- ==== LEFT ==== -->
+            <div class="col-lg-8">
+
+                <!-- Gallery -->
+                <div class="card service-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-images me-2"></i>Hình ảnh & Video</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <% if (service.images && service.images.length > 0) { %>
+                            <img id="mainImage" src="<%= service.images[0] %>" alt="Ảnh chính" class="main-image mb-3">
+                            <div class="thumbnail-list">
+                                <% service.images.forEach((img, index) => { %>
+                                    <img src="<%= img %>" class="<%= index === 0 ? 'active' : '' %>" onclick="changeImage(this)">
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <p class="text-muted text-center">Chưa có hình ảnh cho dịch vụ này.</p>
+                        <% } %>
+
+                        <% if (service.video) { %>
+                            <div class="mt-4">
+                                <video controls>
+                                    <source src="<%= service.video %>" type="video/mp4">
+                                    Trình duyệt của bạn không hỗ trợ video.
+                                </video>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Chi tiết -->
+                <div class="card service-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle me-2"></i>Chi tiết dịch vụ</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Danh mục:</strong> <%= service.category ? service.category.name : '' %></p>
+                        <p><strong>Giá:</strong> 
+                            <span class="text-primary fw-bold"><%= service.price.toLocaleString() %> VNĐ</span>
+                        </p>
+                        <p><strong>Trạng thái:</strong> 
+                            <span class="badge bg-<%= service.status === 'active' ? 'success' : 'danger' %>">
+                                <%= service.status === 'active' ? 'Có sẵn' : 'Tạm ngưng' %>
+                            </span>
+                        </p>
+                        <p><strong>Mô tả chi tiết:</strong></p>
+                        <p><%= service.description || 'Chưa có mô tả chi tiết' %></p>
+                    </div>
+                </div>
+
+                <!-- Đánh giá -->
+                <div class="card service-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-star me-2"></i>Đánh giá (<%= reviews ? reviews.length : 0 %>)</h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (reviews && reviews.length > 0) { %>
+                            <% reviews.forEach(review => { %>
+                                <div class="review-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1"><%= review.customer.fullName %></h6>
+                                            <div class="stars mb-2">
+                                                <% for (let i = 1; i <= 5; i++) { %>
+                                                    <i class="fa<%= i <= review.rating ? 's' : 'r' %> fa-star"></i>
+                                                <% } %>
+                                            </div>
+                                            <p class="mb-0"><%= review.comment %></p>
+                                        </div>
+                                        <small class="text-muted">
+                                            <%= new Date(review.createdAt).toLocaleDateString('vi-VN') %>
+                                        </small>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-muted text-center py-4">Chưa có đánh giá nào.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==== RIGHT ==== -->
+            <div class="col-lg-4">
+
+                <% if (!user || (user._id.toString() !== service.shop._id.toString())) { %>
+
+                    <!-- Form đặt dịch vụ -->
+                    <div class="card service-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cart-plus me-2"></i>Đặt dịch vụ</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="addToCartForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Số lượng</label>
+                                    <input type="number" class="form-control" id="quantity" value="1" min="1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày sự kiện</label>
+                                    <input type="date" class="form-control" id="eventDate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Địa điểm</label>
+                                    <input type="text" class="form-control" id="eventLocation" placeholder="Nhập địa điểm sự kiện">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Ghi chú</label>
+                                    <textarea class="form-control" id="notes" rows="3" placeholder="Ghi chú thêm về dịch vụ"></textarea>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                    </button>
+                                    <a href="/customer/services" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <!-- Nếu là chủ shop -->
+                    <div class="card service-card text-center p-4">
+                        <div class="card-body">
+                            <i class="fas fa-ban fa-3x text-danger mb-3"></i>
+                            <h5>Bạn không thể đặt dịch vụ của chính mình</h5>
+                            <p class="text-muted">Tài khoản của bạn là chủ sở hữu dịch vụ này.</p>
+                        </div>
+                    </div>
+                <% } %>
+
+                <!-- Thông tin shop -->
+                <div class="card service-card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-store me-2"></i>Thông tin shop</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6><%= service.shop.shopName %></h6>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-envelope me-2"></i><%= service.shop.email %>
+                        </p>
+                        <% if (service.shop.phone) { %>
+                            <p class="text-muted mb-2"><i class="fas fa-phone me-2"></i><%= service.shop.phone %></p>
+                        <% } %>
+                        <% if (service.shop.address) { %>
+                            <p class="text-muted mb-0"><i class="fas fa-map-marker-alt me-2"></i><%= service.shop.address %></p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 🔄 Đổi ảnh lớn khi click thumbnail
+        function changeImage(thumbnail) {
+            const mainImage = document.getElementById('mainImage');
+            mainImage.src = thumbnail.src;
+            document.querySelectorAll('.thumbnail-list img').forEach(img => img.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+
+        // 🛒 Gửi form thêm vào giỏ hàng
+        const addForm = document.getElementById('addToCartForm');
+        if (addForm) {
+            addForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = {
+                    serviceId: '<%= service._id %>',
+                    quantity: document.getElementById('quantity').value,
+                    eventDate: document.getElementById('eventDate').value,
+                    eventLocation: document.getElementById('eventLocation').value,
+                    notes: document.getElementById('notes').value
+                };
+
+                const res = await fetch('/customer/cart/add', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await res.json();
+                alert(data.success ? '✅ Đã thêm vào giỏ hàng!' : '❌ Lỗi: ' + (data.message || 'Không thể thêm.'));
+            });
+        }
+    </script>
+</body>
+</html>

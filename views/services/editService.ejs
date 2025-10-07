@@ -1,0 +1,64 @@
+<div class="container">
+    <h1 class="text-center text-warning mb-4">Edit Service</h1>
+    <form action="/services/edit/<%= service._id %>" method="POST" enctype="multipart/form-data">
+        <label>Title:</label>
+        <input type="text" name="title" class="form-control" value="<%= service.title %>" required />
+
+        <label>Description:</label>
+        <textarea name="description" class="form-control"><%= service.description %></textarea>
+
+        <label>Price:</label>
+        <input type="number" name="price" step="0.01" class="form-control" value="<%= service.price %>" required />
+
+        <label>Address:</label>
+        <input type="text" name="address" class="form-control" value="<%= service.address %>" />
+
+        <label>Hình ảnh hiện tại:</label>
+        <div class="mb-2 d-flex gap-2">
+            <% if (service.images && service.images.length) { %>
+                <% service.images.forEach(img => { %>
+                    <img src="<%= img %>" alt="img" style="width:80px;height:80px;object-fit:cover;border-radius:6px;"/>
+                <% }) %>
+            <% } else { %>
+                <div class="text-muted">Chưa có hình</div>
+            <% } %>
+        </div>
+
+        <label>Upload thêm hình (có thể chọn nhiều):</label>
+        <input type="file" name="images" accept="image/*" multiple class="form-control" />
+
+        <label class="mt-2">Video hiện tại:</label>
+        <div class="mb-2">
+            <% if (service.video) { %>
+                <video width="240" controls>
+                    <source src="<%= service.video %>" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            <% } else { %>
+                <div class="text-muted">Chưa có video</div>
+            <% } %>
+        </div>
+
+        <label class="mt-2">Upload video (tùy chọn):</label>
+        <input type="file" name="video" accept="video/*" class="form-control" />
+
+        <label>Status:</label>
+        <select name="status" class="form-select">
+            <option value="active" <%= service.status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= service.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+        </select>
+
+        <label>Category:</label>
+        <select name="category" class="form-select" required>
+            <option value="" disabled>-- Chọn category --</option>
+            <% categories.forEach(cat => { %>
+                <option value="<%= cat._id %>" <%= service.category && service.category.equals(cat._id) ? 'selected' : '' %>>
+                    <%= cat.name %>
+                </option>
+            <% }) %>
+        </select>
+
+        <button type="submit" class="btn btn-warning mt-3">Update Service</button>
+    </form>
+    <a href="/services" class="d-block mt-3 text-decoration-none">&larr; Back to Services</a>
+</div>

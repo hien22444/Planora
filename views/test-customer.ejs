@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Customer Pages - Planora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="mb-0"><i class="fas fa-vial me-2"></i>Test Customer Pages</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Lưu ý:</h6>
+                            <p>Bạn cần đăng nhập với tài khoản customer để test các trang này.</p>
+                        </div>
+                        
+                        <h5>🔗 Các trang Customer cần test:</h5>
+                        <div class="list-group mb-4">
+                            <a href="/customer/dashboard" class="list-group-item list-group-item-action">
+                                <i class="fas fa-home me-2"></i><strong>Dashboard</strong> - Trang chủ tìm dịch vụ
+                            </a>
+                            <a href="/customer/services" class="list-group-item list-group-item-action">
+                                <i class="fas fa-search me-2"></i><strong>Services</strong> - Tìm kiếm dịch vụ
+                            </a>
+                            <a href="/customer/cart" class="list-group-item list-group-item-action">
+                                <i class="fas fa-shopping-cart me-2"></i><strong>Cart</strong> - Giỏ hàng
+                            </a>
+                            <a href="/customer/orders" class="list-group-item list-group-item-action">
+                                <i class="fas fa-list me-2"></i><strong>Orders</strong> - Lịch sử đơn hàng
+                            </a>
+                            <a href="/customer/profile" class="list-group-item list-group-item-action">
+                                <i class="fas fa-user me-2"></i><strong>Profile</strong> - Thông tin cá nhân
+                            </a>
+                        </div>
+                        
+                        <h5>👤 Tài khoản test:</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p><strong>Email:</strong> <code>customer1@example.com</code></p>
+                                <p><strong>Password:</strong> <code>customer123</code></p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="/auth/login" class="btn btn-primary me-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                            </a>
+                            <a href="/" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>Về trang chủ
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

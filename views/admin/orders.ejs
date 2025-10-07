@@ -1,48 +1,183 @@
-
-<div class="order-management">
-  <h2 style="margin-bottom:18px;"><i class="fa fa-shopping-cart"></i> Quản lý Đơn thuê</h2>
-  <form class="order-filter-form" style="margin-bottom:18px;display:flex;gap:10px;">
-    <select name="status" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;">
-      <option value="">Tất cả</option>
-      <option value="pending">Chờ xác nhận</option>
-      <option value="processing">Đang xử lý</option>
-      <option value="completed">Hoàn tất</option>
-      <option value="cancelled">Đã hủy</option>
-    </select>
-    <button type="submit" style="padding:8px 18px;border-radius:8px;background:#3b5998;color:#fff;border:none;">Lọc</button>
-  </form>
-  <table class="order-table" style="width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
-    <thead style="background:#f5f6fa;">
-      <tr>
-        <th style="padding:12px;">Mã đơn</th>
-        <th style="padding:12px;">Khách hàng</th>
-        <th style="padding:12px;">Shop</th>
-        <th style="padding:12px;">Dịch vụ</th>
-        <th style="padding:12px;">Trạng thái</th>
-        <th style="padding:12px;">Hành động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td style="padding:12px;">DH001</td>
-        <td style="padding:12px;">Nguyễn Văn A</td>
-        <td style="padding:12px;">Shop ABC</td>
-        <td style="padding:12px;">Dịch vụ 1</td>
-        <td style="padding:12px;">Chờ xác nhận</td>
-        <td style="padding:12px;">
-          <button style="padding:6px 12px;border-radius:6px;background:#d9534f;color:#fff;border:none;">Xử lý tranh chấp</button>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:12px;">DH002</td>
-        <td style="padding:12px;">Trần Thị B</td>
-        <td style="padding:12px;">Shop XYZ</td>
-        <td style="padding:12px;">Dịch vụ 2</td>
-        <td style="padding:12px;">Hoàn tất</td>
-        <td style="padding:12px;">
-          <button style="padding:6px 12px;border-radius:6px;background:#d9534f;color:#fff;border:none;">Xử lý tranh chấp</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-shopping-cart me-2"></i>Quản lý đơn hàng</h2>
+            <div class="d-flex gap-2">
+                <span class="badge bg-warning fs-6">
+                    <i class="fas fa-clock me-1"></i>Chờ xử lý: <%= orders.filter(o => o.status === 'pending').length %>
+                </span>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/admin/orders">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="pending" <%= currentStatus === 'pending' ? 'selected' : '' %>>Chờ xử lý</option>
+                        <option value="confirmed" <%= currentStatus === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+                        <option value="in_progress" <%= currentStatus === 'in_progress' ? 'selected' : '' %>>Đang xử lý</option>
+                        <option value="completed" <%= currentStatus === 'completed' ? 'selected' : '' %>>Hoàn thành</option>
+                        <option value="cancelled" <%= currentStatus === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="paymentStatus" class="form-label">Thanh toán</label>
+                    <select class="form-select" id="paymentStatus" name="paymentStatus">
+                        <option value="">Tất cả</option>
+                        <option value="pending" <%= currentPaymentStatus === 'pending' ? 'selected' : '' %>>Chờ thanh toán</option>
+                        <option value="paid" <%= currentPaymentStatus === 'paid' ? 'selected' : '' %>>Đã thanh toán</option>
+                        <option value="refunded" <%= currentPaymentStatus === 'refunded' ? 'selected' : '' %>>Đã hoàn tiền</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" id="search" name="search" value="<%= currentSearch || '' %>" placeholder="Mã đơn, tên khách hàng...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Shop</th>
+                        <th>Dịch vụ</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (orders && orders.length > 0) { %>
+                        <% orders.forEach(order => { %>
+                            <tr>
+                                <td>
+                                    <strong>#<%= order._id.toString().slice(-8) %></strong>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><%= order.customer.fullName %></strong>
+                                        <br>
+                                        <small class="text-muted"><%= order.customer.email %></small>
+                                        <br>
+                                        <small class="text-muted"><%= order.customer.phone %></small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong><%= order.shop.shopName %></strong>
+                                </td>
+                                <td>
+                                    <div>
+                                            <% order.services.forEach((service, index) => { %>
+                                            <small><%= service.service ? service.service.title : 'N/A' %> x <%= service.quantity %></small>
+                                            <% if (index < order.services.length - 1) { %><br><% } %>
+                                        <% }) %>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong><%= order.totalAmount.toLocaleString() %> VNĐ</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<%= order.status === 'completed' ? 'success' : 
+                                        order.status === 'pending' ? 'warning' : 
+                                        order.status === 'cancelled' ? 'danger' : 'info' %>">
+                                        <%= order.status === 'pending' ? 'Chờ xử lý' : 
+                                            order.status === 'confirmed' ? 'Đã xác nhận' :
+                                            order.status === 'in_progress' ? 'Đang xử lý' :
+                                            order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<%= order.paymentStatus === 'paid' ? 'success' : 
+                                        order.paymentStatus === 'refunded' ? 'info' : 'warning' %>">
+                                        <%= order.paymentStatus === 'pending' ? 'Chờ thanh toán' : 
+                                            order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Đã hoàn tiền' %>
+                                    </span>
+                                </td>
+                                <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewOrder('<%= order._id %>')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <% if (order.status !== 'completed' && order.status !== 'cancelled') { %>
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-cog"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <form action="/admin/orders/<%= order._id %>/update-status" method="POST" class="d-inline">
+                                                            <input type="hidden" name="status" value="confirmed">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fas fa-check me-2"></i>Xác nhận
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="/admin/orders/<%= order._id %>/update-status" method="POST" class="d-inline">
+                                                            <input type="hidden" name="status" value="in_progress">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fas fa-play me-2"></i>Bắt đầu
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="/admin/orders/<%= order._id %>/update-status" method="POST" class="d-inline">
+                                                            <input type="hidden" name="status" value="completed">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fas fa-check-circle me-2"></i>Hoàn thành
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Không có đơn hàng nào</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewOrder(orderId) {
+    // Implement view order details
+    console.log('View order:', orderId);
+}
+</script>

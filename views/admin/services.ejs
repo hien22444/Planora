@@ -1,35 +1,153 @@
-
-<div class="service-management">
-  <h2 style="margin-bottom:18px;"><i class="fa fa-cogs"></i> Quản lý Dịch vụ</h2>
-  <table class="service-table" style="width:100%;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
-    <thead style="background:#f5f6fa;">
-      <tr>
-        <th style="padding:12px;">Tên dịch vụ</th>
-        <th style="padding:12px;">Shop</th>
-        <th style="padding:12px;">Trạng thái</th>
-        <th style="padding:12px;">Hành động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td style="padding:12px;">Dịch vụ 1</td>
-        <td style="padding:12px;">Shop ABC</td>
-        <td style="padding:12px;">Chờ duyệt</td>
-        <td style="padding:12px;">
-          <button style="padding:6px 12px;border-radius:6px;background:#5bc0de;color:#fff;border:none;">Duyệt</button>
-          <button style="padding:6px 12px;border-radius:6px;background:#f0ad4e;color:#fff;border:none;">Ẩn</button>
-          <button style="padding:6px 12px;border-radius:6px;background:#d9534f;color:#fff;border:none;">Xóa</button>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:12px;">Dịch vụ 2</td>
-        <td style="padding:12px;">Shop XYZ</td>
-        <td style="padding:12px;">Hoạt động</td>
-        <td style="padding:12px;">
-          <button style="padding:6px 12px;border-radius:6px;background:#f0ad4e;color:#fff;border:none;">Ẩn</button>
-          <button style="padding:6px 12px;border-radius:6px;background:#d9534f;color:#fff;border:none;">Xóa</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-cogs me-2"></i>Quản lý dịch vụ</h2>
+            <div class="d-flex gap-2">
+                <span class="badge bg-info fs-6">
+                    <i class="fas fa-list me-1"></i>Tổng: <%= services.length %>
+                </span>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/admin/services">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Loại dịch vụ</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">Tất cả</option>
+                        <option value="sound" <%= currentCategory === 'sound' ? 'selected' : '' %>>Âm thanh</option>
+                        <option value="lighting" <%= currentCategory === 'lighting' ? 'selected' : '' %>>Ánh sáng</option>
+                        <option value="venue" <%= currentCategory === 'venue' ? 'selected' : '' %>>Địa điểm</option>
+                        <option value="furniture" <%= currentCategory === 'furniture' ? 'selected' : '' %>>Bàn ghế</option>
+                        <option value="mc" <%= currentCategory === 'mc' ? 'selected' : '' %>>MC</option>
+                        <option value="catering" <%= currentCategory === 'catering' ? 'selected' : '' %>>Catering</option>
+                        <option value="decoration" <%= currentCategory === 'decoration' ? 'selected' : '' %>>Trang trí</option>
+                        <option value="photography" <%= currentCategory === 'photography' ? 'selected' : '' %>>Chụp ảnh</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="active" <%= currentStatus === 'active' ? 'selected' : '' %>>Hoạt động</option>
+                        <option value="inactive" <%= currentStatus === 'inactive' ? 'selected' : '' %>>Không hoạt động</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" id="search" name="search" value="<%= currentSearch || '' %>" placeholder="Tên dịch vụ...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Services Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Dịch vụ</th>
+                        <th>Shop</th>
+                        <th>Loại</th>
+                        <th>Giá</th>
+                        <th>Đánh giá</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (services && services.length > 0) { %>
+                        <% services.forEach(service => { %>
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong><%= service.title %></strong>
+                                        <br>
+                                        <small class="text-muted"><%= service.description ? service.description.substring(0, 50) : '' %>...</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong><%= service.shop.shopName %></strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        <%= service.category ? service.category.name : 'N/A' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong><%= service.price.toLocaleString() %> VNĐ</strong>
+                                    <br>
+                                    <small class="text-muted">/<%= service.address || 'N/A' %></small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-warning me-1">
+                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                <i class="fas fa-star<%= i <= Math.floor(service.rating) ? '' : '-o' %>"></i>
+                                            <% } %>
+                                        </span>
+                                        <small class="text-muted">(<%= service.totalReviews %>)</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<%= service.status === 'active' ? 'success' : 'danger' %>">
+                                        <%= service.status === 'active' ? 'Hoạt động' : 'Không hoạt động' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewService('<%= service._id %>')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <form action="/admin/services/<%= service._id %>/toggle-status" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-<%= service.status === 'active' ? 'danger' : 'success' %> btn-sm" 
+                                                    data-action="<%= service.status === 'active' ? 'vô hiệu hóa' : 'kích hoạt' %>" onclick="return confirmAction(this)">
+                                                <i class="fas fa-<%= service.status === 'active' ? 'ban' : 'check' %>"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Không có dịch vụ nào</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewService(serviceId) {
+    // Implement view service details
+    console.log('View service:', serviceId);
+}
+</script>
+<script>
+function confirmAction(btn) {
+    const action = btn.getAttribute('data-action') || 'thao tác';
+    return confirm(`Bạn có chắc muốn ${action} dịch vụ này?`);
+}
+</script>

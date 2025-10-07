@@ -1,37 +1,82 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title><%= title %> | Planora Admin</title>
-  <link rel="stylesheet" href="/css/admin.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Admin' %> - Planora Admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
 </head>
 <body>
-  <div class="admin-container">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h2>Planora Admin</h2>
-      </div>
-      <ul class="menu">
-        <li><a href="/admin/dashboard"><i class="fa fa-home"></i> Dashboard</a></li>
-        <li><a href="/admin/users"><i class="fa fa-users"></i> Người dùng</a></li>
-        <li><a href="/admin/shops"><i class="fa fa-store"></i> Shop</a></li>
-        <li><a href="/admin/services"><i class="fa fa-cogs"></i> Dịch vụ</a></li>
-        <li><a href="/admin/orders"><i class="fa fa-shopping-cart"></i> Đơn thuê</a></li>
-        <li><a href="/admin/reports"><i class="fa fa-chart-line"></i> Báo cáo</a></li>
-      </ul>
-    </aside>
+    <div class="sidebar">
+        <div class="admin-title">
+            <i class="fas fa-crown"></i>
+            <span>PLANORA</span>
+        </div>
+        
+        <div class="profile">
+            <img src="https://via.placeholder.com/80x80/3b5998/ffffff?text=A" alt="Admin Avatar">
+            <p style="margin: 8px 0 0 0; font-size: 0.9rem; color: #e0e0e0;">
+                Admin
+            </p>
+        </div>
+        
+        <ul class="menu">
+            <li><a href="/admin/dashboard">
+                <i class="fas fa-tachometer-alt"></i>Dashboard
+            </a></li>
+            <li><a href="/admin/users">
+                <i class="fas fa-users"></i>Người dùng
+            </a></li>
+            <li><a href="/admin/shops">
+                <i class="fas fa-store"></i>Cửa hàng
+            </a></li>
+            <li><a href="/admin/services">
+                <i class="fas fa-cogs"></i>Dịch vụ
+            </a></li>
+            <li><a href="/admin/orders">
+                <i class="fas fa-shopping-cart"></i>Đơn hàng
+            </a></li>
+            <li><a href="/admin/reviews">
+                <i class="fas fa-star"></i>Đánh giá
+            </a></li>
+            <li><a href="/admin/reports">
+                <i class="fas fa-chart-bar"></i>Báo cáo
+            </a></li>
+            <li><a href="/">
+                <i class="fas fa-home"></i>Trang chủ
+            </a></li>
+            <li><a href="/auth/logout">
+                <i class="fas fa-sign-out-alt"></i>Đăng xuất
+            </a></li>
+        </ul>
+    </div>
 
-    <!-- Main content -->
-    <main class="main-content">
-      <header class="topbar">
-        <h1><%= title %></h1>
-      </header>
-      <section class="content">
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        <% if (typeof messages !== 'undefined') { %>
+            <% if (messages.success) { %>
+                <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+                    <i class="fas fa-check-circle me-2"></i><%= messages.success %>
+                </div>
+            <% } %>
+            <% if (messages.error) { %>
+                <div style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                    <i class="fas fa-exclamation-circle me-2"></i><%= messages.error %>
+                </div>
+            <% } %>
+            <% if (messages.warning) { %>
+                <div style="background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffeaa7;">
+                    <i class="fas fa-exclamation-triangle me-2"></i><%= messages.warning %>
+                </div>
+            <% } %>
+        <% } %>
+
         <%- body %>
-      </section>
-    </main>
-  </div>
+    </div>
+
+    <script src="/js/main.js"></script>
 </body>
 </html>

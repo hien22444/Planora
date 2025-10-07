@@ -1,0 +1,35 @@
+<h1>Chi tiết Service</h1>
+
+<p><strong>Title:</strong> <%= service.title %></p>
+<p><strong>Shop:</strong> <%= service.shop ? (service.shop.shopName || service.shop.username) : '' %></p>
+<p><strong>Category:</strong> <%= service.category ? service.category.name : '' %></p>
+<p><strong>Description:</strong> <%= service.description %></p>
+<p><strong>Price:</strong> <%= (typeof service.price === 'number') ? service.price.toLocaleString('vi-VN') + ' VNĐ' : (service.price || '') %></p>
+<p><strong>Address:</strong> <%= service.address %></p>
+<p><strong>Status:</strong> <%= service.status %></p>
+<p><strong>Sold Count:</strong> <%= service.soldCount %></p>
+<p><strong>Created at:</strong> <%= service.createdAt ? new Date(service.createdAt).toLocaleString() : '' %></p>
+
+<hr>
+
+<h3>Images:</h3>
+<% if (service.images && service.images.length > 0) { %>
+  <% service.images.forEach(img => { %>
+    <img src="<%= img %>" alt="Service Image" style="max-width:200px; margin:5px;" />
+  <% }) %>
+<% } else { %>
+  <p>No images</p>
+<% } %>
+
+<h3>Video:</h3>
+<% if (service.video) { %>
+  <video width="320" height="240" controls>
+    <source src="<%= service.video %>" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+<% } else { %>
+  <p>No video</p>
+<% } %>
+
+<br><br>
+<a href="/services">Back</a>

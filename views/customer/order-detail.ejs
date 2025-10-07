@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đơn hàng - Planora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .detail-card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+        .service-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        .service-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-calendar-alt me-2"></i>Planora
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/dashboard">
+                            <i class="fas fa-home me-1"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/services">
+                            <i class="fas fa-search me-1"></i>Tìm dịch vụ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/orders">
+                            <i class="fas fa-list me-1"></i>Đơn hàng
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/cart">
+                            <i class="fas fa-shopping-cart me-1"></i>Giỏ hàng
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><%= user ? user.fullName : 'Tài khoản' %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/customer/profile">
+                                <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                            </a></li>
+                            <li><a class="dropdown-item" href="/logout">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-primary text-white py-4">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0"><i class="fas fa-receipt me-2"></i>Chi tiết đơn hàng</h1>
+                <a href="/customer/orders" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row">
+            <!-- Order Info -->
+            <div class="col-lg-8">
+                <!-- Order Status -->
+                <div class="card detail-card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Trạng thái đơn hàng</h5>
+                            <span class="badge status-badge bg-<%= order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : order.status === 'confirmed' ? 'info' : order.status === 'in_progress' ? 'primary' : 'danger' %>">
+                                <%= order.status === 'pending' ? 'Chờ xử lý' : 
+                                    order.status === 'confirmed' ? 'Đã xác nhận' :
+                                    order.status === 'in_progress' ? 'Đang xử lý' :
+                                    order.status === 'completed' ? 'Hoàn thành' : 
+                                    order.status === 'cancelled' ? 'Đã hủy' : order.status %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Mã đơn hàng:</strong> #<%= order._id.toString().slice(-8) %></p>
+                                <p><strong>Ngày đặt:</strong> <%= new Date(order.createdAt).toLocaleString('vi-VN') %></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Shop:</strong> <%= order.shop.shopName %></p>
+                                <p><strong>Tổng tiền:</strong> <span class="text-primary fw-bold"><%= order.totalAmount.toLocaleString() %> VNĐ</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="card detail-card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Dịch vụ đã đặt</h5>
+                    </div>
+                    <div class="card-body">
+                        <% order.services.forEach(service => { %>
+                            <div class="service-item">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="https://via.placeholder.com/80x80/667eea/ffffff?text=<%= service.service.title %>" class="img-fluid rounded" alt="<%= service.service.title %>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-1"><%= service.service.title %></h6>
+                                        <p class="text-muted small mb-0">Giá: <%= service.price.toLocaleString() %> VNĐ</p>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="badge bg-primary">x<%= service.quantity %></span>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <h6 class="mb-0 text-primary"><%= (service.price * service.quantity).toLocaleString() %> VNĐ</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <!-- Event Information -->
+                <div class="card detail-card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Thông tin sự kiện</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <% if (order.eventDate) { %>
+                                <div class="col-md-6 mb-3">
+                                    <strong>Ngày sự kiện:</strong>
+                                    <p class="mb-0"><%= new Date(order.eventDate).toLocaleDateString('vi-VN') %></p>
+                                </div>
+                            <% } %>
+                            <% if (order.eventLocation) { %>
+                                <div class="col-md-6 mb-3">
+                                    <strong>Địa điểm:</strong>
+                                    <p class="mb-0"><%= order.eventLocation %></p>
+                                </div>
+                            <% } %>
+                        </div>
+                        <% if (order.deliveryAddress) { %>
+                            <div class="mb-3">
+                                <strong>Địa chỉ giao hàng:</strong>
+                                <p class="mb-0"><%= order.deliveryAddress %></p>
+                            </div>
+                        <% } %>
+                        <% if (order.contactPhone) { %>
+                            <div class="mb-3">
+                                <strong>Số điện thoại liên hệ:</strong>
+                                <p class="mb-0"><%= order.contactPhone %></p>
+                            </div>
+                        <% } %>
+                        <% if (order.notes) { %>
+                            <div class="mb-3">
+                                <strong>Ghi chú:</strong>
+                                <p class="mb-0"><%= order.notes %></p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-lg-4">
+                <div class="card detail-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Thao tác</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <% if (order.status === 'pending') { %>
+                                <form action="/customer/orders/<%= order._id %>/cancel" method="POST">
+                                    <button type="submit" class="btn btn-danger w-100" 
+                                            onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
+                                        <i class="fas fa-times me-2"></i>Hủy đơn hàng
+                                    </button>
+                                </form>
+                            <% } %>
+
+                            <% if (order.status === 'confirmed') { %>
+                                <form action="/customer/orders/<%= order._id %>/confirm" method="POST">
+                                    <button type="submit" class="btn btn-success w-100" 
+                                            onclick="return confirm('Xác nhận dịch vụ đã hoàn thành? Sau khi xác nhận, đơn hàng sẽ được đánh dấu hoàn thành.')">
+                                        <i class="fas fa-check me-2"></i>Xác nhận hoàn thành
+                                    </button>
+                                </form>
+                            <% } %>
+
+                            <% if (order.status === 'completed') { %>
+                                <a href="/customer/reviews/<%= order._id %>" class="btn btn-success">
+                                    <i class="fas fa-star me-2"></i>Đánh giá dịch vụ
+                                </a>
+                            <% } %>
+
+                            <a href="/customer/orders" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Info -->
+                <div class="card detail-card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Thông tin thanh toán</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Phương thức:</strong> 
+                            <%= order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 
+                                order.paymentMethod === 'bank' ? 'Chuyển khoản ngân hàng' : 
+                                order.paymentMethod %>
+                        </p>
+                        <p><strong>Trạng thái:</strong> 
+                            <span class="badge bg-<%= order.paymentStatus === 'paid' ? 'success' : 'warning' %>">
+                                <%= order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' %>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
