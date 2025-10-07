@@ -933,7 +933,10 @@ router.get('/reviews/:orderId', requireAuth, async (req, res) => {
         // Update profile
         router.post('/profile/update', requireAuth, async (req, res) => {
           try {
-            const { fullName, phone, dateOfBirth, address, newPassword, confirmPassword } = req.body;
+            console.log('=== UPDATE PROFILE ===');
+            console.log('Request body:', req.body);
+            
+            const { fullName, phone, dateOfBirth, address, currentPassword, newPassword, confirmPassword } = req.body;
             
             const updateData = {
               fullName,
@@ -942,22 +945,58 @@ router.get('/reviews/:orderId', requireAuth, async (req, res) => {
               address
             };
 
+            console.log('Update data (basic):', updateData);
+
             // Nếu có mật khẩu mới
-            if (newPassword) {
+            if (newPassword && newPassword.trim() !== '') {
+              console.log('Processing password change...');
+              
+              // Validate current password
+              if (!currentPassword || currentPassword.trim() === '') {
+                console.log('Current password is required');
+                req.flash('error', 'Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu');
+                return res.redirect('/customer/profile');
+              }
+
+              // Verify current password
+              const bcrypt = require('bcryptjs');
+              const user = await User.findById(req.user._id);
+              const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+              
+              if (!isCurrentPasswordValid) {
+                console.log('Current password is invalid');
+                req.flash('error', 'Mật khẩu hiện tại không đúng');
+                return res.redirect('/customer/profile');
+              }
+
+              // Validate new password
+              if (newPassword.length < 6) {
+                console.log('New password too short');
+                req.flash('error', 'Mật khẩu mới phải có ít nhất 6 ký tự');
+                return res.redirect('/customer/profile');
+              }
+
               if (newPassword !== confirmPassword) {
+                console.log('Password confirmation mismatch');
                 req.flash('error', 'Mật khẩu xác nhận không khớp');
                 return res.redirect('/customer/profile');
               }
-              const bcrypt = require('bcryptjs');
+
+              console.log('Hashing new password...');
               updateData.password = await bcrypt.hash(newPassword, 10);
+              console.log('Password hashed successfully');
             }
 
+            console.log('Final update data:', { ...updateData, password: updateData.password ? '***' : 'not changed' });
+
             await User.findByIdAndUpdate(req.user._id, updateData);
+            console.log('User updated successfully');
+            
             req.flash('success', 'Cập nhật thông tin thành công');
             res.redirect('/customer/profile');
           } catch (error) {
             console.error('Update profile error:', error);
-            req.flash('error', 'Có lỗi xảy ra khi cập nhật thông tin');
+            req.flash('error', 'Có lỗi xảy ra khi cập nhật thông tin: ' + error.message);
             res.redirect('/customer/profile');
           }
         });
