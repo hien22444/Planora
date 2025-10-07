@@ -70,17 +70,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(expressLayouts);
-app.set("layout extractScripts", true);
-app.set("layout extractStyles", true);
+app.set("layout", "layouts/main"); // layout mặc định
 
 // Load user middleware
 app.use(loadUser);
-
-// Add path to locals middleware
-app.use((req, res, next) => {
-  res.locals.path = req.path;
-  next();
-});
 
 // Routes
 const adminRoutes = require("./routes/adminRoutes");
@@ -153,6 +146,21 @@ app.get("/", (req, res) => {
 // Legacy route redirects
 app.get("/login", (req, res) => res.redirect("/auth/login"));
 app.get("/register", (req, res) => res.redirect("/auth/register"));
+app.get("/verify-email", (req, res) =>
+  res.redirect(
+    "/auth/verify-email" +
+      (req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "")
+  )
+);
+app.get("/forgot-password", (req, res) =>
+  res.redirect("/auth/forgot-password")
+);
+app.get("/reset-password", (req, res) =>
+  res.redirect(
+    "/auth/reset-password" +
+      (req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "")
+  )
+);
 app.post("/login", (req, res) => res.redirect("/auth/login"));
 app.post("/register", (req, res) => res.redirect("/auth/register"));
 app.post("/logout", (req, res) => res.redirect("/auth/logout"));

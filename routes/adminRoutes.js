@@ -5,7 +5,15 @@ const { requireAdmin } = require("../middleware/auth");
 
 // Middleware to set admin layout for all admin routes
 router.use((req, res, next) => {
-  res.locals.layout = "layouts/admin";
+  // Only apply admin layout when the logged-in user is an admin.
+  // This prevents express-ejs-layouts from trying to use a layout that
+  // doesn't exist for unauthenticated or non-admin users.
+  if (req.user && req.user.role === "admin") {
+    res.locals.layout = "layouts/admin";
+  } else {
+    // Ensure we fall back to the default layout otherwise
+    res.locals.layout = "layouts/main";
+  }
   next();
 });
 

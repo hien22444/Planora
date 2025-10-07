@@ -94,7 +94,7 @@ async function seedData() {
       {
         shop: shopOwner._id,
         title: 'Hệ thống âm thanh chuyên nghiệp',
-        description: 'Hệ thống âm thanh chất lượng cao cho sự kiện lớn, bao gồm loa, micro, mixer và các thiết bị hỗ trợ.',
+description: 'Hệ thống âm thanh chất lượng cao cho sự kiện lớn, bao gồm loa, micro, mixer và các thiết bị hỗ trợ.',
         category: categoriesMap['sound']._id,
         price: 500000,
         address: shopOwner.shopAddress || '123 Event Street, HCMC',
