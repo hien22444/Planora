@@ -1,80 +1,350 @@
-<header>
-    <h1>Dashboard</h1>
-    <div class="topbar">
-        <i class="fas fa-bell"></i>
-        <i class="fas fa-envelope"></i>
-        <img src="https://via.placeholder.com/40x40/3b5998/ffffff?text=A" alt="Admin">
+<!-- Page Header -->
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title mb-0">
+                <i class="fas fa-tachometer-alt me-2"></i>Tổng quan
+            </h2>
+            <!-- <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
+            </nav> -->
+        </div>
     </div>
-</header>
 
-<div class="cards">
-    <div class="card">
-        <i class="fas fa-users"></i>
-        <h3><%= userCount %></h3>
-        <p>Người dùng</p>
+<!-- Thẻ thống kê -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tổng người dùng</h6>
+                        <h2 class="mt-2 mb-0"><%= userCount %></h2>
+                    </div>
+                    <div class="card-icon">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <i class="fas fa-store"></i>
-        <h3><%= shopCount %></h3>
-        <p>Cửa hàng</p>
+    <div class="col-md-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tổng cửa hàng</h6>
+                        <h2 class="mt-2 mb-0"><%= shopCount %></h2>
+                    </div>
+                    <div class="card-icon">
+                        <i class="fas fa-store fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <i class="fas fa-cogs"></i>
-        <h3><%= serviceCount %></h3>
-        <p>Dịch vụ</p>
+    <div class="col-md-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tổng dịch vụ</h6>
+                        <h2 class="mt-2 mb-0"><%= serviceCount %></h2>
+                    </div>
+                    <div class="card-icon">
+                        <i class="fas fa-cogs fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <i class="fas fa-shopping-cart"></i>
-        <h3><%= orderCount %></h3>
-        <p>Đơn hàng</p>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Tổng đơn hàng</h6>
+                        <h2 class="mt-2 mb-0"><%= orderCount %></h2>
+                    </div>
+                    <div class="card-icon">
+                        <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="section-cards">
-    <div class="section-card">
-        <i class="fas fa-users"></i>
-        <h3>Quản lý người dùng</h3>
-        <p>Xem và quản lý tất cả người dùng trong hệ thống</p>
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted">Doanh thu hôm nay</h6>
+                        <h3 class="mt-2 mb-0 text-primary">
+                            <%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(revenueToday || 0) %>
+                        </h3>
+                    </div>
+                    <div class="card-icon text-primary">
+                        <i class="fas fa-sack-dollar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="section-card">
-        <i class="fas fa-store"></i>
-        <h3>Quản lý cửa hàng</h3>
-        <p>Duyệt và quản lý các cửa hàng đăng ký</p>
+    <div class="col-md-3">
+        <div class="card border-success h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted">Doanh thu tháng</h6>
+                        <h3 class="mt-2 mb-0 text-success">
+                            <%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(revenueMonth || 0) %>
+                        </h3>
+                    </div>
+                    <div class="card-icon text-success">
+                        <i class="fas fa-coins fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="section-card">
-        <i class="fas fa-cogs"></i>
-        <h3>Quản lý dịch vụ</h3>
-        <p>Kiểm duyệt và quản lý các dịch vụ được cung cấp</p>
+    <div class="col-md-3">
+        <div class="card border-warning h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted">Đơn chờ xử lý</h6>
+                        <h3 class="mt-2 mb-0 text-warning">
+                            <%= pendingOrders || 0 %>
+                        </h3>
+                    </div>
+                    <div class="card-icon text-warning">
+                        <i class="fas fa-hourglass-half fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="section-card">
-        <i class="fas fa-shopping-cart"></i>
-        <h3>Quản lý đơn hàng</h3>
-        <p>Theo dõi và xử lý các đơn hàng thuê dịch vụ</p>
-    </div>
-    <div class="section-card">
-        <i class="fas fa-chart-bar"></i>
-        <h3>Báo cáo thống kê</h3>
-        <p>Xem các báo cáo và thống kê chi tiết</p>
+    <div class="col-md-3">
+        <div class="card border-danger h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted">Chờ thanh toán</h6>
+                        <h3 class="mt-2 mb-0 text-danger">
+                            <%= unpaidOrders || 0 %>
+                        </h3>
+                    </div>
+                    <div class="card-icon text-danger">
+                        <i class="fas fa-wallet fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="chart">
-    <h3>Biểu đồ doanh thu</h3>
-    <canvas id="revenueChart"></canvas>
+
+
+<!-- Biểu đồ thống kê -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Thống kê doanh thu</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Thống kê đơn hàng</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="orderChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="chart">
-    <h3>Biểu đồ số đơn thuê</h3>
-    <canvas id="orderChart"></canvas>
+<div class="dashboard-alerts mt-4">
+    <% if (typeof alerts !=='undefined' && alerts.length) { %>
+        <div class="alert alert-warning" role="alert">
+            <h4 class="alert-heading mb-2">Cảnh báo</h4>
+            <ul class="mb-0">
+                <% alerts.forEach(a=> { %>
+                    <li><strong>
+                            <%= a %>
+                        </strong></li>
+                    <% }) %>
+            </ul>
+        </div>
+        <% } %>
 </div>
 
-<div class="dashboard-alerts" style="margin-top:32px;">
-    <h4>Cảnh báo</h4>
-    <ul>
-        <% alerts.forEach(a => { %>
-            <li style="color:#d9534f;font-weight:bold;"><%= a %></li>
-        <% }) %>
-    </ul>
+<div class="row g-3 mt-2">
+    <!-- Quick Actions -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Tác vụ nhanh</h5>
+                <div class="d-grid gap-2">
+                    <a href="/admin/orders" class="btn btn-primary"><i class="fas fa-shopping-cart me-2"></i>Quản lý
+                        đơn</a>
+                    <a href="/admin/services" class="btn btn-secondary"><i class="fas fa-cogs me-2"></i>Quản lý dịch
+                        vụ</a>
+                    <a href="/admin/users" class="btn btn-info"><i class="fas fa-users me-2"></i>Quản lý người dùng</a>
+                    <a href="/admin/reports" class="btn btn-success"><i class="fas fa-chart-line me-2"></i>Báo cáo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="col-lg-9 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="card-title mb-0">Đơn hàng gần đây</h5>
+                    <a href="/admin/orders" class="text-decoration-none">Xem tất cả</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Khách hàng</th>
+                                <th>Shop</th>
+                                <th>Tổng</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (typeof recentOrders !=='undefined' && recentOrders.length) { %>
+                                <% recentOrders.slice(0,5).forEach(o=> { %>
+                                    <tr>
+                                        <td><strong>#<%= o._id.toString().slice(-8) %></strong></td>
+                                        <td>
+                                            <%= o.customer && o.customer.fullName ? o.customer.fullName : '—' %>
+                                        </td>
+                                        <td>
+                                            <%= o.shop && o.shop.shopName ? o.shop.shopName : '—' %>
+                                        </td>
+                                        <td>
+                                            <%= (o.totalAmount || 0).toLocaleString() %> VNĐ
+                                        </td>
+                                        <td>
+                                            <span
+                                                class="badge bg-<%= o.status === 'completed' ? 'success' : o.status === 'pending' ? 'warning' : o.status === 'cancelled' ? 'danger' : 'info' %>">
+                                                <%= o.status==='pending' ? 'Chờ xử lý' : o.status==='confirmed'
+                                                    ? 'Đã xác nhận' : o.status==='in_progress' ? 'Đang xử lý' :
+                                                    o.status==='completed' ? 'Hoàn thành' : 'Đã hủy' %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="5" class="text-muted text-center">Không có đơn gần đây</td>
+                                            </tr>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <!-- Top Services -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Dịch vụ nổi bật</h5>
+                <ul class="list-group list-group-flush">
+                    <% if (typeof topServices !=='undefined' && topServices.length) { %>
+                        <% topServices.slice(0,5).forEach(s=> { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-cog me-2"></i>
+                                    <%= s.title %>
+                                </span>
+                                <span class="badge bg-primary">
+                                    <%= s.totalOrders || 0 %> đơn
+                                </span>
+                            </li>
+                            <% }) %>
+                                <% } else { %>
+                                    <li class="list-group-item text-muted">Chưa có dữ liệu</li>
+                                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Người dùng mới</h5>
+                <ul class="list-group list-group-flush">
+                    <% if (typeof recentUsers !=='undefined' && recentUsers.length) { %>
+                        <% recentUsers.slice(0,5).forEach(u=> { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-user me-2"></i>
+                                    <%= u.fullName || u.email %>
+                                </span>
+                                <span class="badge bg-info">
+                                    <%= new Date(u.createdAt).toLocaleDateString('vi-VN') %>
+                                </span>
+                            </li>
+                            <% }) %>
+                                <% } else { %>
+                                    <li class="list-group-item text-muted">Chưa có dữ liệu</li>
+                                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Reviews -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Đánh giá mới nhất</h5>
+                <ul class="list-group list-group-flush">
+                    <% if (typeof latestReviews !=='undefined' && latestReviews.length) { %>
+                        <% latestReviews.slice(0,5).forEach(r=> { %>
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span><i class="fas fa-user-circle me-2"></i>
+                                        <%= r.user && r.user.fullName ? r.user.fullName : 'Ẩn danh' %>
+                                    </span>
+                                    <span class="badge bg-success">
+                                        <%= r.rating %>/5
+                                    </span>
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    <%= r.comment || '' %>
+                                </div>
+                            </li>
+                            <% }) %>
+                                <% } else { %>
+                                    <li class="list-group-item text-muted">Chưa có dữ liệu</li>
+                                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -85,6 +355,13 @@
     const orderLabels = JSON.parse('<%- JSON.stringify(orderLabels) %>');
     const orderData = JSON.parse('<%- JSON.stringify(orderData) %>');
 
+    // Format currency
+    const formatVND = (value) => new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(value);
+
+    // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     new Chart(revenueCtx, {
         type: 'line',
@@ -93,25 +370,73 @@
             datasets: [{
                 label: 'Doanh thu',
                 data: revenueData,
-                borderColor: 'orange',
-                backgroundColor: 'rgba(255,165,0,0.1)',
-                fill: true
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                fill: true,
+                tension: 0.4
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatVND(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Doanh thu: ' + formatVND(context.parsed.y);
+                        }
+                    }
+                }
+            }
         }
     });
 
+    // Order Chart
     const orderCtx = document.getElementById('orderChart').getContext('2d');
     new Chart(orderCtx, {
-        type: 'bar',
+        type: 'doughnut',
         data: {
             labels: orderLabels,
             datasets: [{
-                label: 'Số đơn thuê',
                 data: orderData,
-                backgroundColor: 'rgba(54,162,235,0.5)',
-                borderColor: 'blue',
-                borderWidth: 1
+                backgroundColor: [
+                    'rgb(75, 192, 192)',
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 205, 86)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ]
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.parsed} đơn`;
+                        }
+                    }
+                }
+            }
         }
     });
 </script>

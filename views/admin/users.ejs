@@ -1,127 +1,107 @@
-<header>
-    <h1>Quản lý người dùng</h1>
-    <div class="topbar">
-        <i class="fas fa-bell"></i>
-        <i class="fas fa-envelope"></i>
-        <img src="https://via.placeholder.com/40x40/3b5998/ffffff?text=A" alt="Admin">
-    </div>
+<!-- views/admin/users.ejs -->
 
-<div style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h2 style="margin-bottom: 20px; color: #333;">
-        <i class="fas fa-users" style="margin-right: 10px; color: #3b5998;"></i>Quản lý người dùng
-    </h2>
-    
-    <!-- Filters -->
-    <form method="GET" action="/admin/users" style="margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-            <div>
-                <label for="role" style="display: block; margin-bottom: 5px; font-weight: bold;">Vai trò</label>
-                <select name="role" id="role" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <option value="">Tất cả</option>
-                    <option value="customer" <%= role === 'customer' ? 'selected' : '' %>>Khách hàng</option>
-                    <option value="shop" <%= role === 'shop' ? 'selected' : '' %>>Cửa hàng</option>
-                    <option value="admin" <%= role === 'admin' ? 'selected' : '' %>>Admin</option>
-                </select>
-            </div>
-            <div>
-                <label for="status" style="display: block; margin-bottom: 5px; font-weight: bold;">Trạng thái</label>
-                <select name="status" id="status" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <option value="">Tất cả</option>
-                    <option value="active" <%= status === 'active' ? 'selected' : '' %>>Hoạt động</option>
-                    <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Không hoạt động</option>
-                </select>
-            </div>
-            <div>
-                <label for="search" style="display: block; margin-bottom: 5px; font-weight: bold;">Tìm kiếm</label>
-                <input type="text" name="search" id="search" value="<%= search || '' %>" 
-                       placeholder="Tên, email..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-            </div>
-            <div style="display: flex; align-items: end;">
-                <button type="submit" style="background: #3b5998; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                    <i class="fas fa-search"></i> Lọc
-                </button>
-                <a href="/admin/users" style="background: #6c757d; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px;">
-                    <i class="fas fa-times"></i> Xóa bộ lọc
-                </a>
-            </div>
-        </div>
-    </form>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Quản lý người dùng</h3>
+    <span class="text-muted">
+      Tổng người dùng: <b><%= totalUsers %></b> |
+      Chủ shop: <b><%= totalShops %></b>
+    </span>
+  </div>
 
-    <!-- Users Table -->
-    <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <thead>
-                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                    <th style="padding: 12px; text-align: left; font-weight: bold;">ID</th>
-                    <th style="padding: 12px; text-align: left; font-weight: bold;">Tên</th>
-                    <th style="padding: 12px; text-align: left; font-weight: bold;">Email</th>
-                    <th style="padding: 12px; text-align: left; font-weight: bold;">Vai trò</th>
-                    <th style="padding: 12px; text-align: left; font-weight: bold;">Trạng thái</th>
-                    <th style="padding: 12px; text-align: left; font-weight: bold;">Ngày tạo</th>
-                    <th style="padding: 12px; text-align: center; font-weight: bold;">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% users.forEach(user => { %>
-                <tr style="border-bottom: 1px solid #dee2e6;">
-                    <td style="padding: 12px;"><%= user._id %></td>
-                    <td style="padding: 12px; font-weight: bold;"><%= user.fullName %></td>
-                    <td style="padding: 12px;"><%= user.email %></td>
-                    <td style="padding: 12px;">
-                        <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;
-                            background: <%= user.role === 'admin' ? '#dc3545' : user.role === 'shop' ? '#ffc107' : '#28a745' %>;
-                            color: <%= user.role === 'admin' ? 'white' : user.role === 'shop' ? 'black' : 'white' %>;">
-                            <%= user.role === 'admin' ? 'Admin' : user.role === 'shop' ? 'Cửa hàng' : 'Khách hàng' %>
-                        </span>
-                    </td>
-                    <td style="padding: 12px;">
-                        <span style="padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;
-                            background: <%= user.isActive ? '#28a745' : '#dc3545' %>; color: white;">
-                            <%= user.isActive ? 'Hoạt động' : 'Không hoạt động' %>
-                        </span>
-                    </td>
-                    <td style="padding: 12px;"><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td>
-                    <td style="padding: 12px; text-align: center;">
-                        <form action="/admin/users/<%= user._id %>/toggle-status" method="POST" style="display: inline;">
-                            <button type="submit" style="background: <%= user.isActive ? '#dc3545' : '#28a745' %>; 
-                                color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin: 0 2px;">
-                                <i class="fas fa-<%= user.isActive ? 'ban' : 'check' %>"></i>
-                                <%= user.isActive ? 'Khóa' : 'Mở khóa' %>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                <% }) %>
-            </tbody>
-        </table>
+  <!-- Bộ lọc -->
+  <form class="row g-2 mb-3" method="get" action="/admin/users">
+    <div class="col-md-3">
+      <input
+        type="text"
+        name="search"
+        class="form-control"
+        placeholder="Tìm theo tên hoặc email..."
+        value="<%= search %>"
+      />
     </div>
+    <div class="col-md-3">
+      <select name="role" class="form-select">
+        <option value="">Tất cả vai trò</option>
+        <option value="user" <%= role==='user' ? 'selected' : '' %>>Người dùng</option>
+        <option value="shop" <%= role==='shop' ? 'selected' : '' %>>Chủ shop</option>
+        <option value="admin" <%= role==='admin' ? 'selected' : '' %>>Admin</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="form-select">
+        <option value="">Tất cả trạng thái</option>
+        <option value="active" <%= status==='active' ? 'selected' : '' %>>Hoạt động</option>
+        <option value="inactive" <%= status==='inactive' ? 'selected' : '' %>>Bị khóa</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary w-100">Lọc</button>
+      <a href="/admin/users" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
 
-    <!-- Pagination -->
-    <% if (totalPages > 1) { %>
-    <div style="margin-top: 20px; text-align: center;">
-        <div style="display: inline-block;">
-            <% if (currentPage > 1) { %>
-                <a href="?page=<%= currentPage - 1 %>&role=<%= role || '' %>&status=<%= status || '' %>&search=<%= search || '' %>" 
-                   style="padding: 8px 12px; margin: 0 2px; background: #3b5998; color: white; text-decoration: none; border-radius: 4px;">
-                    <i class="fas fa-chevron-left"></i>
+  <!-- Bảng người dùng -->
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th>Vai trò</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (users.length === 0) { %>
+          <tr>
+            <td colspan="7" class="text-center text-muted">Không có người dùng nào</td>
+          </tr>
+        <% } else { %>
+          <% users.forEach((user, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= user.fullName || '—' %></td>
+              <td><%= user.email %></td>
+              <td>
+                <% if (user.role === 'admin') { %>
+                  <span class="badge bg-danger">Admin</span>
+                <% } else if (user.role === 'shop') { %>
+                  <span class="badge bg-success">Chủ shop</span>
+                <% } else { %>
+                  <span class="badge bg-secondary">Người dùng</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (user.isActive) { %>
+                  <span class="badge bg-primary">Hoạt động</span>
+                <% } else { %>
+                  <span class="badge bg-warning text-dark">Bị khóa</span>
+                <% } %>
+              </td>
+              <td><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td>
+              <td>
+                <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-info me-1">
+                  <i class="fas fa-eye"></i> Xem chi tiết
                 </a>
-            <% } %>
-            
-            <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
-                <a href="?page=<%= i %>&role=<%= role || '' %>&status=<%= status || '' %>&search=<%= search || '' %>" 
-                   style="padding: 8px 12px; margin: 0 2px; background: <%= i === currentPage ? '#1e1e2d' : '#3b5998' %>; 
-                   color: white; text-decoration: none; border-radius: 4px;">
-                    <%= i %>
-                </a>
-            <% } %>
-            
-            <% if (currentPage < totalPages) { %>
-                <a href="?page=<%= currentPage + 1 %>&role=<%= role || '' %>&status=<%= status || '' %>&search=<%= search || '' %>" 
-                   style="padding: 8px 12px; margin: 0 2px; background: #3b5998; color: white; text-decoration: none; border-radius: 4px;">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            <% } %>
-        </div>
-    </div>
-    <% } %>
+                <form
+                  action="/admin/users/toggle/<%= user._id %>"
+                  method="post"
+                  class="d-inline"
+                  onsubmit="return confirm('Xác nhận thay đổi trạng thái người dùng này?');"
+                >
+                  <button type="submit" class="btn btn-sm <%= user.isActive ? 'btn-danger' : 'btn-success' %>">
+                    <%= user.isActive ? 'Khóa' : 'Kích hoạt' %>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
 </div>

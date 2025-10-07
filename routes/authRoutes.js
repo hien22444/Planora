@@ -210,13 +210,23 @@ router.post('/resend-verification', async (req, res) => {
   }
 });
 
-// Đăng xuất
+// Đăng xuất (GET) - phù hợp với link trong layout
+router.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+    }
+    res.redirect('/');
+  });
+});
+
+// Đăng xuất (POST)
 router.post('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       console.error('Logout error:', err);
     }
-    res.redirect('/login');
+    res.redirect('/');
   });
 });
 
