@@ -3,12 +3,42 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const { requireAdmin } = require("../middleware/auth");
 
+// Middleware to set admin layout for all admin routes
+router.use((req, res, next) => {
+  // Only apply admin layout when the logged-in user is an admin.
+  // This prevents express-ejs-layouts from trying to use a layout that
+  // doesn't exist for unauthenticated or non-admin users.
+  if (req.user && req.user.role === "admin") {
+    res.locals.layout = "layouts/admin";
+  } else {
+    // Ensure we fall back to the default layout otherwise
+    res.locals.layout = "layouts/main";
+  }
+  next();
+});
+
 // Dashboard
 router.get("/dashboard", requireAdmin, adminController.dashboard);
 
 // Quản lý người dùng
 router.get("/users", requireAdmin, adminController.manageUsers);
-router.post("/users/:id/toggle-status", requireAdmin, adminController.toggleUserStatus);
+router.get("/users/:id", requireAdmin, adminController.showUserDetail);
+router.post(
+  "/users/:id/toggle-status",
+  requireAdmin,
+  adminController.toggleUserStatus
+);
+
+// Dashboard
+router.get("/dashboard", requireAdmin, adminController.dashboard);
+
+// Quản lý người dùng
+router.get("/users", requireAdmin, adminController.manageUsers);
+router.post(
+  "/users/:id/toggle-status",
+  requireAdmin,
+  adminController.toggleUserStatus
+);
 
 // Quản lý shop
 router.get("/shops", requireAdmin, adminController.manageShops);
@@ -17,15 +47,27 @@ router.post("/shops/:id/reject", requireAdmin, adminController.rejectShop);
 
 // Quản lý dịch vụ
 router.get("/services", requireAdmin, adminController.manageServices);
-router.post("/services/:id/toggle-status", requireAdmin, adminController.toggleServiceStatus);
+router.post(
+  "/services/:id/toggle-status",
+  requireAdmin,
+  adminController.toggleServiceStatus
+);
 
 // Quản lý đơn thuê
 router.get("/orders", requireAdmin, adminController.manageOrders);
-router.post("/orders/:id/update-status", requireAdmin, adminController.updateOrderStatus);
+router.post(
+  "/orders/:id/update-status",
+  requireAdmin,
+  adminController.updateOrderStatus
+);
 
 // Quản lý đánh giá
 router.get("/reviews", requireAdmin, adminController.manageReviews);
-router.post("/reviews/:id/toggle-visibility", requireAdmin, adminController.toggleReviewVisibility);
+router.post(
+  "/reviews/:id/toggle-visibility",
+  requireAdmin,
+  adminController.toggleReviewVisibility
+);
 
 // Báo cáo
 router.get("/reports", requireAdmin, adminController.reports);

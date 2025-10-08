@@ -7,29 +7,29 @@ const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/e
 const router = express.Router();
 
 // Đăng ký
-router.get('/register', (req, res) => {
-  res.render('auth/register', { 
-    layout: 'layouts/main',
-    title: 'Đăng ký tài khoản'
+router.get("/register", (req, res) => {
+  res.render("auth/register", {
+    layout: "layouts/main",
+    title: "Đăng ký tài khoản",
   });
 });
 
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
-  const { username, email, password, fullName, phone, address } = req.body;
+    const { username, email, password, fullName, phone, address } = req.body;
 
     // Kiểm tra user đã tồn tại
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
     });
 
     if (existingUser) {
-      req.flash('error', 'Email hoặc username đã được sử dụng');
-      return res.redirect('/auth/register');
+      req.flash("error", "Email hoặc username đã được sử dụng");
+      return res.redirect("/auth/register");
     }
 
     // Tạo token xác thực email
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 giờ
 
     // Tạo user mới
@@ -41,9 +41,9 @@ router.post('/register', async (req, res) => {
       fullName,
       phone,
       address,
-      role: 'customer',
+      role: "customer",
       emailVerificationToken: verificationToken,
-      emailVerificationExpires: verificationExpires
+      emailVerificationExpires: verificationExpires,
     });
 
     await user.save();
@@ -51,38 +51,48 @@ router.post('/register', async (req, res) => {
     // Gửi email xác thực đến email người dùng đăng ký
     try {
       const emailSent = await sendVerificationEmail(email, verificationToken);
-      
+
       if (emailSent) {
-        req.flash('success', `Đăng ký thành công! Vui lòng kiểm tra email ${email} để xác thực tài khoản`);
+        req.flash(
+          "success",
+          `Đăng ký thành công! Vui lòng kiểm tra email ${email} để xác thực tài khoản`
+        );
       } else {
-        req.flash('warning', 'Đăng ký thành công! Tuy nhiên, không thể gửi email xác thực. Vui lòng liên hệ admin');
+        req.flash(
+          "warning",
+          "Đăng ký thành công! Tuy nhiên, không thể gửi email xác thực. Vui lòng liên hệ admin"
+        );
       }
     } catch (error) {
-      console.error('Email error:', error);
-      req.flash('error', 'Có lỗi xảy ra khi gửi email xác thực. Vui lòng thử lại sau');
+      console.error("Email error:", error);
+      req.flash(
+        "error",
+        "Có lỗi xảy ra khi gửi email xác thực. Vui lòng thử lại sau"
+      );
     }
     
     res.redirect('/auth/login');
   } catch (error) {
-    console.error('Register error:', error);
-    req.flash('error', 'Có lỗi xảy ra khi đăng ký');
-    res.redirect('/auth/register');
+    console.error("Register error:", error);
+    req.flash("error", "Có lỗi xảy ra khi đăng ký");
+    res.redirect("/auth/register");
   }
 });
 
 // Đăng nhập
-router.get('/login', (req, res) => {
+router.get("/login", (req, res) => {
   if (req.user) {
-    if (req.user.role === 'admin') return res.redirect('/admin/dashboard');
-    if (req.user.role === 'customer' || req.user.role === 'shop') return res.redirect('/customer/dashboard');
+    if (req.user.role === "admin") return res.redirect("/admin/dashboard");
+    if (req.user.role === "customer" || req.user.role === "shop")
+      return res.redirect("/customer/dashboard");
   }
-  res.render('auth/login', { 
-    layout: 'layouts/main',
-    title: 'Đăng nhập'
+  res.render("auth/login", {
+    layout: "layouts/main",
+    title: "Đăng nhập",
   });
 });
 
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -116,15 +126,15 @@ router.post('/login', async (req, res) => {
     req.session.userId = user._id;
     req.session.userRole = user.role;
 
-    req.flash('success', 'Đăng nhập thành công!');
-    
+    req.flash("success", "Đăng nhập thành công!");
+
     // Redirect theo role (shops act like customers for dashboard access)
-    if (user.role === 'admin') {
-      res.redirect('/admin/dashboard');
-    } else if (user.role === 'shop' || user.role === 'customer') {
-      res.redirect('/customer/dashboard');
+    if (user.role === "admin") {
+      res.redirect("/admin/dashboard");
+    } else if (user.role === "shop" || user.role === "customer") {
+      res.redirect("/customer/dashboard");
     } else {
-      res.redirect('/customer/dashboard');
+      res.redirect("/customer/dashboard");
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -134,10 +144,10 @@ router.post('/login', async (req, res) => {
 });
 
 // Xác thực email
-router.get('/verify-email', async (req, res) => {
+router.get("/verify-email", async (req, res) => {
   try {
     const { token } = req.query;
-    
+
     if (!token) {
       req.flash('error', 'Token xác thực không hợp lệ');
       return res.redirect('/auth/login');
@@ -146,7 +156,7 @@ router.get('/verify-email', async (req, res) => {
     // Tìm user với token
     const user = await User.findOne({
       emailVerificationToken: token,
-      emailVerificationExpires: { $gt: Date.now() }
+      emailVerificationExpires: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -170,10 +180,10 @@ router.get('/verify-email', async (req, res) => {
 });
 
 // Gửi lại email xác thực
-router.post('/resend-verification', async (req, res) => {
+router.post("/resend-verification", async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     const user = await User.findOne({ email });
     if (!user) {
       req.flash('error', 'Email không tồn tại');
@@ -186,7 +196,7 @@ router.post('/resend-verification', async (req, res) => {
     }
 
     // Tạo token mới
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     user.emailVerificationToken = verificationToken;
@@ -195,11 +205,14 @@ router.post('/resend-verification', async (req, res) => {
 
     // Gửi email xác thực
     const emailSent = await sendVerificationEmail(email, verificationToken);
-    
+
     if (emailSent) {
-      req.flash('success', 'Email xác thực đã được gửi lại! Vui lòng kiểm tra hộp thư');
+      req.flash(
+        "success",
+        "Email xác thực đã được gửi lại! Vui lòng kiểm tra hộp thư"
+      );
     } else {
-      req.flash('error', 'Không thể gửi email xác thực. Vui lòng thử lại sau');
+      req.flash("error", "Không thể gửi email xác thực. Vui lòng thử lại sau");
     }
     
     res.redirect('/auth/login');
@@ -210,11 +223,21 @@ router.post('/resend-verification', async (req, res) => {
   }
 });
 
-// Đăng xuất
-router.post('/logout', (req, res) => {
+// Đăng xuất (GET) - phù hợp với link trong layout
+router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error('Logout error:', err);
+      console.error("Logout error:", err);
+    }
+    res.redirect("/");
+  });
+});
+
+// Đăng xuất (POST)
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
     }
     res.redirect('/auth/login');
   });
