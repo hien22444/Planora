@@ -4,40 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh toán - Planora</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap                            // Lấy dữ liệu form
-                                const orderData = {
-                                    eventDate: form.querySelector('input[name="eventDate"]').value,
-                                    eventLocation: form.querySelector('textarea[name="eventLocation"]').value,
-                                    contactPhone: form.querySelector('input[name="contactPhone"]').value,
-                                    notes: form.querySelector('textarea[name="notes"]').value,
-                                    paymentMethod: form.querySelector('input[name="paymentMethod"]:checked').value
-                                };
-
-                                console.log('Sending order data:', orderData);
-
-                                // Gửi request
-                                const response = await fetch('/customer/order', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json'
-                                    },
-                                    body: JSON.stringify(orderData),
-                                    credentials: 'same-origin' // Gửi kèm cookie session
-                                });bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .checkout-card {
-            border-radius: 15px;
-            border: none;
+        .checkout-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .selected-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+        }
+        .selected-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .total-section {
+            background: #fff;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .service-item {
-            border-bottom: 1px solid #eee;
-            padding: 15px 0;
-        }
-        .service-item:last-child {
-            border-bottom: none;
         }
     </style>
 </head>
@@ -82,217 +83,148 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user me-1"></i><%= user ? user.fullName : 'Tài khoản' %>
                         </a>
-                        <ul class="dropdown-menu">
+                          <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="/customer/profile">
                                 <i class="fas fa-user me-2"></i>Thông tin cá nhân
                             </a></li>
-                            <li><a class="dropdown-item" href="/logout">
-                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
-                            </a></li>
+                        
                         </ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-
-    <!-- Header -->
-    <div class="bg-primary text-white py-4">
-        <div class="container">
-            <h1 class="h3 mb-0"><i class="fas fa-credit-card me-2"></i>Thanh toán</h1>
-        </div>
-    </div>
-
-    <div class="container my-5">
+    
+    <div class="container py-4">
         <div class="row">
-            <!-- Order Summary -->
-            <div class="col-lg-8">
-                <div class="card checkout-card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-list me-2"></i>Đơn hàng của bạn</h5>
-                    </div>
-                    <div class="card-body">
-                        <% if (cart && cart.length > 0) { %>
-                            <% cart.forEach(item => { %>
-                                <div class="service-item">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-2">
-                                            <img src="https://via.placeholder.com/80x80/667eea/ffffff?text=<%= item.service.title %>" class="img-fluid rounded" alt="<%= item.service.title %>">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6 class="mb-1"><%= item.service.title %></h6>
-                                            <p class="text-muted small mb-0"><%= item.service.shop.shopName %></p>
-                                            <p class="text-muted small mb-0">Giá: <%= item.service.price.toLocaleString() %> VNĐ / <%= item.service.unit %></p>
-                                        </div>
-                                        <div class="col-md-2 text-center">
-                                            <span class="badge bg-primary">x<%= item.quantity %></span>
-                                        </div>
-                                        <div class="col-md-2 text-end">
-                                            <h6 class="mb-0 text-primary"><%= (item.service.price * item.quantity).toLocaleString() %> VNĐ</h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            <% }) %>
-                        <% } else { %>
-                            <div class="text-center py-4">
-                                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Giỏ hàng trống</p>
-                                <a href="/customer/services" class="btn btn-primary">Tiếp tục mua sắm</a>
+            <div class="col-md-8">
+                <div class="form-section" style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; display: block !important; visibility: visible !important;">
+                    <h4 class="mb-4" style="color: #333;"><i class="fas fa-file-alt"></i> Thông tin đặt hàng</h4>
+                    
+                    <form id="checkoutForm" style="display: block !important;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="eventDate" class="form-label">Ngày sự kiện *</label>
+                                <input type="date" class="form-control" name="eventDate" id="eventDate" required min="<%= new Date().toISOString().split('T')[0] %>">
                             </div>
-                        <% } %>
-                    </div>
-                </div>
-
-                <!-- Event Information -->
-                <div class="card checkout-card mt-4">
-                    <div class="card-header">
-                        <h5><i class="fas fa-calendar me-2"></i>Thông tin sự kiện</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="checkoutForm">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Ngày sự kiện *</label>
-                                    <input type="date" class="form-control" name="eventDate" 
-                                           value="<%= new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0] %>" 
-                                           min="<%= new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0] %>" 
-                                           required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Số điện thoại liên hệ *</label>
-                                    <input type="tel" class="form-control" name="contactPhone" value="<%= user.phone || '' %>" required>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="contactPhone" class="form-label">Số điện thoại liên hệ *</label>
+                                <input type="tel" class="form-control" name="contactPhone" id="contactPhone" required>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Địa điểm sự kiện *</label>
-                                <textarea class="form-control" name="eventLocation" rows="3" placeholder="Nhập địa điểm diễn ra sự kiện" required><%= user.address || '' %></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Ghi chú thêm</label>
-                                <textarea class="form-control" name="notes" rows="3" placeholder="Ghi chú thêm về sự kiện, yêu cầu đặc biệt..."></textarea>
-                            </div>
-
-                            <!-- Payment Method inside form -->
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Phương thức thanh toán</label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="eventLocation" class="form-label">Địa điểm sự kiện *</label>
+                            <textarea class="form-control" name="eventLocation" id="eventLocation" rows="3" placeholder="Nhập địa chỉ chi tiết..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Phương thức thanh toán *</label>
+                            <div class="d-flex gap-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="vnpay" checked>
                                     <label class="form-check-label" for="vnpay">
-                                        <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png" alt="VNPay" height="20" class="me-2">
-                                        VNPay
-                                        <small class="text-muted ms-2">(Sandbox test)</small>
+                                        <i class="fas fa-credit-card"></i> VNPay
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod">
+                                    <label class="form-check-label" for="cod">
+                                        <i class="fas fa-money-bill-wave"></i> Tiền mặt
                                     </label>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Ghi chú</label>
+                            <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="Ghi chú thêm về đơn hàng..."></textarea>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <!-- Payment Summary -->
-            <div class="col-lg-4">
-                <div class="card checkout-card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-credit-card me-2"></i>Thanh toán</h5>
+            
+            <div class="col-md-4">
+                <div class="checkout-summary">
+                    <h5 class="mb-3"><i class="fas fa-shopping-cart"></i> Đơn hàng của bạn</h5>
+                    
+                    <div id="selectedItemsList">
+                        <!-- Items sẽ được load từ sessionStorage -->
                     </div>
-                    <div class="card-body">
-                        
-                        <!-- Order Summary -->
-                        <div class="border-top pt-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Tạm tính:</span>
-                                <span><%= totalAmount.toLocaleString() %> VNĐ</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Phí vận chuyển:</span>
-                                <span>0 VNĐ</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Giảm giá:</span>
-                                <span>0 VNĐ</span>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span>Tổng cộng:</span>
-                                <span class="text-primary"><%= totalAmount.toLocaleString() %> VNĐ</span>
-                            </div>
-
-                            <button type="button" class="btn btn-primary w-100 mt-4" id="submitOrder">
-                                <i class="fas fa-check me-2"></i>Đặt hàng ngay
-                                <span class="spinner-border spinner-border-sm ms-2 d-none" id="submitSpinner"></span>
-                            </button>
-                        </form>
-
-                        <a href="/customer/cart" class="btn btn-outline-secondary w-100 mt-2">
-                            <i class="fas fa-arrow-left me-2"></i>Quay lại giỏ hàng
+                    
+                    <div class="total-section">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Tạm tính:</span>
+                            <span id="subtotal">0 VNĐ</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Phí dịch vụ:</span>
+                            <span>0 VNĐ</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>Tổng cộng:</strong>
+                            <strong class="text-primary" id="totalAmount">0 VNĐ</strong>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary w-100 mt-3" id="submitOrder">
+                        <span id="submitSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        <i class="fas fa-check"></i> Đặt hàng
+                    </button>
+                    
+                    <div class="text-center mt-3">
+                        <a href="/customer/cart" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
                         </a>
-                    </div>
-                </div>
-
-                <!-- Security Info -->
-                <div class="card checkout-card mt-3">
-                    <div class="card-body text-center">
-                        <i class="fas fa-shield-alt fa-2x text-success mb-3"></i>
-                        <h6>Bảo mật thanh toán</h6>
-                        <p class="small text-muted mb-0">Thông tin của bạn được bảo mật và mã hóa</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Page loaded, setting up order submission...');
+        console.log('Checkout page loaded');
         
-        const submitBtn = document.getElementById('submitOrder');
-        const spinner = document.getElementById('submitSpinner');
-        const form = document.getElementById('checkoutForm');
-        
-        if (submitBtn && form) {
-            console.log('Found submit button and form');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing checkout page');
+            loadSelectedItems();
+            
+            const submitBtn = document.getElementById('submitOrder');
+            const spinner = document.getElementById('submitSpinner');
+            const form = document.getElementById('checkoutForm');
+            
+            console.log('Form elements:', { submitBtn, spinner, form });
             
             submitBtn.addEventListener('click', async function(event) {
                 event.preventDefault();
-                console.log('Submit button clicked');
                 
                 try {
-                    // Show loading
                     submitBtn.disabled = true;
                     spinner.classList.remove('d-none');
                     
-                    // Get form data directly from elements
-                    const eventDateInput = form.querySelector('input[name="eventDate"]');
-                    const eventLocationInput = form.querySelector('textarea[name="eventLocation"]');
-                    const contactPhoneInput = form.querySelector('input[name="contactPhone"]');
-                    const paymentMethodInput = form.querySelector('input[name="paymentMethod"]:checked');
-                    const notesInput = form.querySelector('textarea[name="notes"]');
+                    const selectedItems = JSON.parse(sessionStorage.getItem('selectedItems') || '[]');
                     
-                    console.log('Form elements found:');
-                    console.log('- eventDate element:', eventDateInput);
-                    console.log('- eventLocation element:', eventLocationInput);
-                    console.log('- contactPhone element:', contactPhoneInput);
-                    console.log('- paymentMethod element:', paymentMethodInput);
-                    console.log('- notes element:', notesInput);
+                    if (selectedItems.length === 0) {
+                        alert('Không có sản phẩm nào được chọn');
+                        return;
+                    }
                     
                     const orderData = {
-                        eventDate: eventDateInput ? eventDateInput.value : '',
-                        eventLocation: eventLocationInput ? eventLocationInput.value : '',
-                        contactPhone: contactPhoneInput ? contactPhoneInput.value : '',
-                        paymentMethod: paymentMethodInput ? paymentMethodInput.value : '',
-                        notes: notesInput ? notesInput.value : ''
+                        eventDate: form.querySelector('input[name="eventDate"]').value,
+                        eventLocation: form.querySelector('textarea[name="eventLocation"]').value,
+                        contactPhone: form.querySelector('input[name="contactPhone"]').value,
+                        paymentMethod: form.querySelector('input[name="paymentMethod"]:checked').value,
+                        notes: form.querySelector('textarea[name="notes"]').value,
+                        selectedItems: selectedItems
                     };
                     
-                    console.log('Order data to send:', orderData);
-                    
-                    // Validate required fields
                     if (!orderData.eventDate) {
                         alert('Vui lòng chọn ngày sự kiện');
                         return;
                     }
-                    if (!orderData.eventLocation) {
+                    if (!orderData.eventLocation.trim()) {
                         alert('Vui lòng nhập địa điểm sự kiện');
                         return;
                     }
@@ -300,12 +232,7 @@
                         alert('Vui lòng nhập số điện thoại liên hệ');
                         return;
                     }
-                    if (!orderData.paymentMethod) {
-                        alert('Vui lòng chọn phương thức thanh toán');
-                        return;
-                    }
                     
-                    // Send request
                     const response = await fetch('/customer/order', {
                         method: 'POST',
                         headers: {
@@ -316,41 +243,79 @@
                         credentials: 'same-origin'
                     });
                     
-                    console.log('Response status:', response.status);
-                    
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error('HTTP error! status: ' + response.status);
                     }
                     
                     const result = await response.json();
-                    console.log('Response data:', result);
                     
                     if (result.success) {
+                        sessionStorage.removeItem('selectedItems');
+                        
                         if (result.paymentUrl) {
-                            console.log('Redirecting to payment URL:', result.paymentUrl);
                             window.location.href = result.paymentUrl;
                         } else {
-                            console.log('No payment URL, redirecting to orders');
                             window.location.href = '/customer/orders';
                         }
                     } else {
-                        throw new Error(result.error || 'Unknown error occurred');
+                        alert('Lỗi: ' + (result.error || 'Không thể đặt hàng'));
                     }
                 } catch (error) {
-                    console.error('Error during order submission:', error);
-                    alert(error.message || 'Có lỗi xảy ra khi xử lý đơn hàng. Vui lòng thử lại.');
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
                 } finally {
-                    // Hide loading
                     submitBtn.disabled = false;
                     spinner.classList.add('d-none');
                 }
             });
-        } else {
-            console.error('Submit button or form not found!');
+        });
+        
+        function loadSelectedItems() {
+            const selectedItems = JSON.parse(sessionStorage.getItem('selectedItems') || '[]');
+            const container = document.getElementById('selectedItemsList');
+            
+            console.log('Selected items from sessionStorage:', selectedItems);
+            
+            if (selectedItems.length === 0) {
+                container.innerHTML = '<p class="text-muted">Không có sản phẩm nào được chọn</p>';
+                return;
+            }
+            
+            let totalAmount = 0;
+            let html = '';
+            
+            selectedItems.forEach(item => {
+                console.log('Processing item:', item);
+                
+                // Xử lý trường hợp thiếu dữ liệu
+                const itemPrice = parseFloat(item.price) || 0;
+                const itemQuantity = parseInt(item.quantity) || 1;
+                const itemTotal = itemPrice * itemQuantity;
+                
+                totalAmount += itemTotal;
+                
+                html += '<div class="selected-item">';
+                html += '<div class="d-flex align-items-center">';
+                html += '<img src="' + (item.image || '/uploads/default-service.jpg') + '" ';
+                html += 'alt="' + (item.name || 'Sản phẩm') + '" class="selected-item-image me-3">';
+                html += '<div class="flex-grow-1">';
+                html += '<h6 class="mb-1">' + (item.name || 'Sản phẩm không xác định') + '</h6>';
+                html += '<small class="text-muted">Số lượng: ' + itemQuantity + '</small>';
+                html += '<div class="fw-bold text-primary">' + formatPrice(itemTotal) + ' VNĐ</div>';
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+            
+            document.getElementById('subtotal').textContent = formatPrice(totalAmount) + ' VNĐ';
+            document.getElementById('totalAmount').textContent = formatPrice(totalAmount) + ' VNĐ';
         }
-    });
+        
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN').format(price);
+        }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

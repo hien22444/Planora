@@ -279,44 +279,48 @@ router.get('/cart/count', requireAuth, (req, res) => {
   }
 });
 
-// Thêm vào giỏ hàng
+// Thêm vào giỏ hàng (không gộp item khác ngày, kiểm tra ngày quá khứ)
 router.post('/cart/add', requireAuth, async (req, res) => {
   try {
-    console.log('Request body:', req.body); // Debug log
     const { serviceId, quantity, eventDate, eventLocation, notes } = req.body;
-    
     if (!serviceId || !quantity) {
       return res.status(400).json({
         success: false,
         message: 'Thiếu thông tin bắt buộc (serviceId, quantity)'
       });
     }
-
-    // Validate eventLocation if provided
+    if (!eventDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng chọn ngày sự kiện'
+      });
+    }
+    // Kiểm tra ngày không phải quá khứ
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const eventDateObj = new Date(eventDate);
+    if (eventDateObj < today) {
+      return res.status(400).json({
+        success: false,
+        message: 'Không thể đặt dịch vụ cho ngày trong quá khứ'
+      });
+    }
     if (eventLocation !== undefined && (!eventLocation || eventLocation.trim() === '')) {
       return res.status(400).json({
         success: false,
         message: 'Địa điểm sự kiện không được để trống'
       });
     }
-
-    if (!req.session.cart) {
-      req.session.cart = [];
-    }
-
+    if (!req.session.cart) req.session.cart = [];
     // Validate serviceId exists
     const service = await Service.findById(serviceId);
     if (!service) {
-      return res.json({ 
-        success: false, 
-        message: 'Không tìm thấy dịch vụ' 
-      });
+      return res.json({ success: false, message: 'Không tìm thấy dịch vụ' });
     }
-
-    const existingItem = req.session.cart.find(item => item.serviceId === serviceId);
+    // Không gộp item khác ngày
+    const existingItem = req.session.cart.find(item => item.serviceId === serviceId && item.eventDate === eventDate);
     if (existingItem) {
       existingItem.quantity += parseInt(quantity);
-      existingItem.eventDate = eventDate;
       existingItem.eventLocation = eventLocation;
       existingItem.notes = notes;
     } else {
@@ -328,30 +332,49 @@ router.post('/cart/add', requireAuth, async (req, res) => {
         notes
       });
     }
-
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Đã thêm vào giỏ hàng',
       count: req.session.cart.reduce((total, item) => total + item.quantity, 0)
     });
   } catch (error) {
     console.error('Add to cart error:', error);
-    res.json({ 
-      success: false, 
-      message: 'Có lỗi xảy ra khi thêm vào giỏ hàng'
-    });
+    res.json({ success: false, message: 'Có lỗi xảy ra khi thêm vào giỏ hàng' });
   }
 });
 
-// Xóa khỏi giỏ hàng
+// API cập nhật số lượng giỏ hàng
+router.post('/cart/update', requireAuth, (req, res) => {
+  try {
+    const { serviceId, eventDate, quantity } = req.body;
+    if (!serviceId || !eventDate) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin' });
+    }
+    if (!req.session.cart) req.session.cart = [];
+    const item = req.session.cart.find(i => i.serviceId === serviceId && i.eventDate === eventDate);
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy mục trong giỏ hàng' });
+    }
+    item.quantity = Math.max(1, parseInt(quantity));
+    res.json({ success: true, message: 'Đã cập nhật số lượng', quantity: item.quantity });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Lỗi cập nhật số lượng' });
+  }
+});
+
+// Xóa khỏi giỏ hàng (xét cả eventDate nếu có)
 router.post('/cart/remove', requireAuth, (req, res) => {
-  const { serviceId } = req.body;
-  req.session.cart = req.session.cart.filter(item => item.serviceId !== serviceId);
+  const { serviceId, eventDate } = req.body;
+  if (eventDate) {
+    req.session.cart = req.session.cart.filter(item => !(item.serviceId === serviceId && item.eventDate === eventDate));
+  } else {
+    req.session.cart = req.session.cart.filter(item => item.serviceId !== serviceId);
+  }
   req.flash('success', 'Đã xóa khỏi giỏ hàng');
   res.redirect('/customer/cart');
 });
 
-// Checkout
+// Checkout  
 router.get('/checkout', requireAuth, async (req, res) => {
   try {
     const cart = req.session.cart || [];
@@ -400,7 +423,160 @@ router.get('/checkout', requireAuth, async (req, res) => {
   }
 });
 
-// Đặt hàng
+// Thanh toán trực tiếp (không cần nhập thông tin thêm)
+router.post('/payment', requireAuth, async (req, res) => {
+    try {
+        console.log('=== BẮT ĐẦU XỬ LÝ THANH TOÁN TRỰC TIẾP ===');
+        console.log('Request body nhận được:', req.body);
+        
+        const cart = req.session.cart || [];
+        if (cart.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Giỏ hàng trống'
+            });
+        }
+
+        // Lấy danh sách items được chọn
+        const selectedItems = req.body.selectedItems || [];
+        console.log('Selected items:', selectedItems);
+        
+        if (selectedItems.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Không có dịch vụ nào được chọn để thanh toán'
+            });
+        }
+
+        // Lọc cart chỉ lấy những item được chọn
+        const cartToProcess = cart.filter(cartItem => 
+            selectedItems.some(selected => 
+                selected.serviceId === cartItem.serviceId && 
+                selected.eventDate === cartItem.eventDate
+            )
+        );
+        
+        console.log('Cart to process:', cartToProcess.length, 'items');
+
+        // Nhóm các items theo ngày sự kiện
+        const itemsByDate = {};
+        cartToProcess.forEach(item => {
+            const eventDate = item.eventDate;
+            if (!itemsByDate[eventDate]) {
+                itemsByDate[eventDate] = [];
+            }
+            itemsByDate[eventDate].push(item);
+        });
+
+        console.log('Items grouped by date:', Object.keys(itemsByDate));
+
+        // Nếu có nhiều ngày khác nhau, gộp thành 1 đơn hàng với ngày sớm nhất
+        const eventDates = Object.keys(itemsByDate).sort();
+        const primaryEventDate = eventDates[0]; // Ngày sớm nhất
+        
+        if (eventDates.length > 1) {
+            console.log(`Multiple dates found (${eventDates.length}), using primary date: ${primaryEventDate}`);
+        }
+
+        // Gộp tất cả items từ các ngày khác nhau
+        const allItems = cartToProcess;
+
+        // Lấy thông tin dịch vụ
+        const serviceIds = allItems.map(item => item.serviceId);
+        const services = await Service.find({ _id: { $in: serviceIds } });
+
+        // Tạo items cho order
+        const orderItems = allItems.map(cartItem => {
+            const service = services.find(s => s._id.toString() === cartItem.serviceId);
+            if (!service) {
+                throw new Error(`Không tìm thấy dịch vụ với ID: ${cartItem.serviceId}`);
+            }
+            return {
+                service: service._id,
+                quantity: cartItem.quantity,
+                price: service.price
+            };
+        });
+
+        // Tính tổng tiền
+        const totalAmount = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        // Get shop ID (assume all services are from same shop)
+        const shopId = services[0].shop;
+        if (!shopId) {
+            throw new Error('Không tìm thấy thông tin cửa hàng');
+        }
+
+        console.log('=== CREATING SINGLE ORDER ===');
+        console.log('Primary event date:', primaryEventDate);
+        console.log('Total items:', orderItems.length);
+        console.log('Total amount:', totalAmount);
+
+        // Tạo 1 đơn hàng duy nhất
+        const order = new Order({
+            customer: req.user._id,
+            shop: shopId,
+            services: orderItems.map(item => ({
+                service: item.service,
+                quantity: item.quantity,
+                price: item.price
+            })),
+            eventDate: primaryEventDate, // Sử dụng ngày sớm nhất
+            eventLocation: allItems[0].eventLocation || 'Địa điểm sẽ được cập nhật',
+            deliveryAddress: allItems[0].eventLocation || 'Địa điểm sẽ được cập nhật',
+            contactPhone: req.user.phone || '0000000000',
+            notes: eventDates.length > 1 ? `Đơn hàng gộp cho các ngày: ${eventDates.join(', ')}` : '',
+            paymentMethod: 'vnpay',
+            totalAmount: totalAmount,
+            status: 'pending',
+            paymentStatus: 'pending'
+        });
+
+        await order.save();
+
+        // Tạo VNPay URL
+        try {
+            const amount = Math.round(Math.abs(order.totalAmount));
+            const orderInfo = `Thanh toan don hang ${order._id}`;
+            
+            const paymentUrl = await vnPayService.createVNPayUrl(
+                order._id.toString(),
+                amount,
+                orderInfo
+            );
+
+            // Xóa các item đã thanh toán khỏi giỏ hàng
+            req.session.cart = cart.filter(cartItem => 
+                !selectedItems.some(selected => 
+                    selected.serviceId === cartItem.serviceId && 
+                    selected.eventDate === cartItem.eventDate
+                )
+            );
+
+            console.log('VNPay URL created:', paymentUrl);
+            
+            return res.status(200).json({
+                success: true,
+                paymentUrl: paymentUrl,
+                orderCount: 1,
+                message: eventDates.length > 1 ? `Đã gộp ${eventDates.length} ngày khác nhau thành 1 đơn hàng` : undefined
+            });
+        } catch (error) {
+            console.error('VNPay Error:', error);
+            await Order.findByIdAndDelete(order._id);
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Payment Error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Có lỗi xảy ra khi xử lý thanh toán: ' + error.message
+        });
+    }
+});
+
+// Đặt hàng (route cũ - có thể giữ lại để tương thích)
 const vnPayService = require('../services/vnPayService');
 
 router.use(express.json());
@@ -417,71 +593,57 @@ const cleanInput = (value) => {
 };
 
 router.post('/order', requireAuth, async (req, res) => {
-    console.log('\n=== REQUEST INFO ===');
-    console.log('Method:', req.method);
-    console.log('URL:', req.url);
-    console.log('Content-Type:', req.get('Content-Type'));
-    console.log('Request Headers:', JSON.stringify(req.headers, null, 2));
     try {
         console.log('=== BẮT ĐẦU XỬ LÝ ĐƠN HÀNG ===');
         console.log('Request body nhận được:', req.body);
-        console.log('Request headers:', req.headers);
-        console.log('Content-Type:', req.headers['content-type']);
-        console.log('Thông tin giỏ hàng trong session:', req.session.cart);
-        console.log('Thông tin user:', {
-            id: req.user._id,
-            name: req.user.fullName,
-            phone: req.user.phone
-        });
         
         const cart = req.session.cart || [];
         if (cart.length === 0) {
-            console.log('Lỗi: Giỏ hàng trống');
             return res.status(400).json({
                 success: false,
                 error: 'Giỏ hàng trống'
             });
         }
 
-        console.log('\n=== FORM DATA PROCESSING ===');
-        const firstCartItem = cart[0];
-        console.log('Cart Item:', JSON.stringify(firstCartItem, null, 2));
+        // Lấy danh sách items được chọn (nếu có)
+        const selectedItems = req.body.selectedItems || [];
+        console.log('Selected items:', selectedItems);
+        
+        // Lọc cart chỉ lấy những item được chọn
+        let cartToProcess = cart;
+        if (selectedItems.length > 0) {
+            cartToProcess = cart.filter(cartItem => 
+                selectedItems.some(selected => 
+                    selected.serviceId === cartItem.serviceId && 
+                    selected.eventDate === cartItem.eventDate
+                )
+            );
+        }
+        
+        if (cartToProcess.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Không có dịch vụ nào được chọn để thanh toán'
+            });
+        }
+        
+        console.log('Cart to process:', cartToProcess.length, 'items');
 
-        // Kiểm tra raw body
-        console.log('Raw Body:', req.body);
-        console.log('Form Fields:', Object.keys(req.body));
-
-        // Lấy và xác thực dữ liệu từ form hoặc cart với cleaning
+        // Lấy và xác thực dữ liệu từ form (không cần eventDate vì đã có từ cart)
         const formData = {
-            eventDate: cleanInput(req.body.eventDate) || cleanInput(firstCartItem.eventDate),
-            eventLocation: cleanInput(req.body.eventLocation) || cleanInput(firstCartItem.eventLocation),
+            eventLocation: cleanInput(req.body.eventLocation),
             contactPhone: cleanInput(req.body.contactPhone) || cleanInput(req.user.phone),
-            paymentMethod: cleanInput(req.body.paymentMethod) || 'vnpay',
-            notes: cleanInput(req.body.notes || firstCartItem.notes || '')
+            notes: cleanInput(req.body.notes) || ''
         };
 
-        // Log cleaned form data
-        console.log('Form data after cleaning and validation:', JSON.stringify(formData, null, 2));
-
-        // Log dữ liệu form đã xử lý
         console.log('Form data after cleaning:', formData);
 
-        console.log('Processed Form Data:', JSON.stringify(formData, null, 2));
-
-        const eventDate = formData.eventDate;
-        console.log('Ngày sự kiện:', eventDate);
-
         const eventLocation = formData.eventLocation;
-        console.log('Địa điểm:', eventLocation);
-
         const contactPhone = formData.contactPhone || req.user.phone;
-        console.log('Số điện thoại:', contactPhone);
-
-        const paymentMethod = formData.paymentMethod || 'vnpay';
-        console.log('Phương thức thanh toán:', paymentMethod); // Default to vnpay
+        const paymentMethod = 'vnpay'; // Chỉ hỗ trợ VNPay
 
         // Validate event location 
-        if (!eventLocation || !formData.eventLocation || eventLocation.trim() === '') {
+        if (!eventLocation || eventLocation.trim() === '') {
             return res.status(400).json({
                 success: false,
                 error: 'Vui lòng nhập địa điểm sự kiện'
@@ -497,25 +659,6 @@ router.post('/order', requireAuth, async (req, res) => {
             });
         }
 
-        // Validate event date format and value
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!eventDate || !dateRegex.test(eventDate)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Ngày sự kiện không hợp lệ (định dạng: YYYY-MM-DD)'
-            });
-        }
-
-        // Validate event date is in the future
-        const today = new Date();
-        const eventDateObj = new Date(eventDate);
-        if (eventDateObj <= today) {
-            return res.status(400).json({
-                success: false,
-                error: 'Ngày sự kiện phải là ngày trong tương lai'
-            });
-        }
-
         // Validate phone number
         if (!contactPhone || !/^\d{10}$/.test(contactPhone)) {
             return res.status(400).json({
@@ -524,20 +667,12 @@ router.post('/order', requireAuth, async (req, res) => {
             });
         }
 
-        // Validate payment method
-        if (!['vnpay', 'bank_transfer'].includes(paymentMethod)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Phương thức thanh toán không hợp lệ'
-            });
-        }
-
         // Lấy thông tin dịch vụ từ database
-        const serviceIds = cart.map(item => item.serviceId);
+        const serviceIds = cartToProcess.map(item => item.serviceId);
         const services = await Service.find({ _id: { $in: serviceIds } });
 
         // Tạo items cho order
-        const orderItems = cart.map(cartItem => {
+        const orderItems = cartToProcess.map(cartItem => {
             const service = services.find(s => s._id.toString() === cartItem.serviceId);
             if (!service) {
                 throw new Error(`Không tìm thấy dịch vụ với ID: ${cartItem.serviceId}`);
@@ -563,6 +698,9 @@ router.post('/order', requireAuth, async (req, res) => {
         console.log('Danh sách items:', orderItems);
         console.log('Tổng tiền:', totalAmount);
 
+        // Lấy eventDate từ item đầu tiên (giả sử tất cả items cùng ngày sự kiện)
+        const eventDate = cartToProcess[0].eventDate;
+
         // Create new order
         const order = new Order({
             customer: req.user._id,
@@ -576,7 +714,7 @@ router.post('/order', requireAuth, async (req, res) => {
             eventLocation: eventLocation,
             deliveryAddress: eventLocation, // Using eventLocation as delivery address
             contactPhone: contactPhone,
-            notes: req.body.notes || firstCartItem.notes || '',
+            notes: formData.notes || '',
             paymentMethod: paymentMethod,
             totalAmount: totalAmount,
             status: 'pending',
@@ -586,45 +724,48 @@ router.post('/order', requireAuth, async (req, res) => {
         console.log('Dữ liệu đơn hàng trước khi lưu:', order);
 
         await order.save();
+        
+        // Xóa các item đã thanh toán khỏi giỏ hàng
+        if (selectedItems.length > 0) {
+            req.session.cart = cart.filter(cartItem => 
+                !selectedItems.some(selected => 
+                    selected.serviceId === cartItem.serviceId && 
+                    selected.eventDate === cartItem.eventDate
+                )
+            );
+        } else {
+            req.session.cart = [];
+        }
 
         console.log('\n=== PAYMENT PROCESSING ===');
-        if (formData.paymentMethod === 'vnpay') {
-            try {
-                console.log('Creating VNPay order...');
-                const amount = Math.round(Math.abs(order.totalAmount));
-                const orderInfo = `Thanh toan don hang ${order._id}`;
-                console.log('VNPay order data:', {
-                    orderId: order._id.toString(),
-                    amount: amount,
-                    orderInfo: orderInfo
-                });
+        // Chỉ xử lý VNPay
+        try {
+            console.log('Creating VNPay order...');
+            const amount = Math.round(Math.abs(order.totalAmount));
+            const orderInfo = `Thanh toan don hang ${order._id}`;
+            console.log('VNPay order data:', {
+                orderId: order._id.toString(),
+                amount: amount,
+                orderInfo: orderInfo
+            });
 
-                const paymentUrl = await vnPayService.createVNPayUrl(
-                    order._id.toString(),
-                    amount,
-                    orderInfo
-                );
+            const paymentUrl = await vnPayService.createVNPayUrl(
+                order._id.toString(),
+                amount,
+                orderInfo
+            );
 
-                console.log('VNPay URL created:', paymentUrl);
-                req.session.cart = [];
-                return res.status(200).json({
-                    success: true,
-                    paymentUrl: paymentUrl
-                });
-            } catch (error) {
-                console.error('VNPay Error:', error);
-                await Order.findByIdAndDelete(order._id);
-                return res.status(400).json({
-                    success: false,
-                    error: 'Lỗi xử lý thanh toán: ' + error.message
-                });
-            }
-        } else {
-            console.log('Processing bank transfer...');
-            req.session.cart = [];
+            console.log('VNPay URL created:', paymentUrl);
             return res.status(200).json({
                 success: true,
-                redirectUrl: '/customer/orders'
+                paymentUrl: paymentUrl
+            });
+        } catch (error) {
+            console.error('VNPay Error:', error);
+            await Order.findByIdAndDelete(order._id);
+            return res.status(400).json({
+                success: false,
+                error: 'Lỗi xử lý thanh toán: ' + error.message
             });
         }
     } catch (error) {
