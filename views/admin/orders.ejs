@@ -80,22 +80,26 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <strong><%= order.customer.fullName %></strong>
+                                        <strong><%= order.customer ? order.customer.fullName : 'N/A' %></strong>
                                         <br>
-                                        <small class="text-muted"><%= order.customer.email %></small>
+                                        <small class="text-muted"><%= order.customer ? order.customer.email : '' %></small>
                                         <br>
-                                        <small class="text-muted"><%= order.customer.phone %></small>
+                                        <small class="text-muted"><%= order.customer ? order.customer.phone : '' %></small>
                                     </div>
                                 </td>
                                 <td>
-                                    <strong><%= order.shop.shopName %></strong>
+                                    <strong><%= order.shop ? order.shop.shopName || 'Shop đã xóa' : 'N/A' %></strong>
                                 </td>
                                 <td>
                                     <div>
+                                        <% if (order.services && order.services.length > 0) { %>
                                             <% order.services.forEach((service, index) => { %>
-                                            <small><%= service.service ? service.service.title : 'N/A' %> x <%= service.quantity %></small>
-                                            <% if (index < order.services.length - 1) { %><br><% } %>
-                                        <% }) %>
+                                                <small><%= service.service ? service.service.title : 'Dịch vụ đã xóa' %> x <%= service.quantity %></small>
+                                                <% if (index < order.services.length - 1) { %><br><% } %>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <small class="text-muted">Không có dịch vụ</small>
+                                        <% } %>
                                     </div>
                                 </td>
                                 <td>

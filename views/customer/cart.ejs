@@ -96,25 +96,24 @@
                         <div class="card cart-item mb-3">
                             <div class="card-body">
                                 <div class="row align-items-center">
-                                    <div class="col-md-2">
-                                        <div class="bg-primary text-white text-center py-4 rounded">
-                                            <% 
-                                                let icon = 'star';
-                                                const catName = item.service && item.service.category && item.service.category.name;
-                                                if (catName === 'sound') icon = 'volume-up';
-                                                else if (catName === 'lighting') icon = 'lightbulb';
-                                                else if (catName === 'furniture') icon = 'chair';
-                                                else if (catName === 'decoration') icon = 'palette';
-                                                else if (catName === 'photography') icon = 'camera';
-                                                else if (catName === 'videography') icon = 'video';
-                                            %>
-                                            <i class="fas fa-<%= icon %> fa-2x"></i>
+                                    <div class="col-md-1">
+                                        <div class="form-check">
+                                            <input class="form-check-input item-checkbox" type="checkbox" 
+                                                   id="item_<%= index %>" checked 
+                                                   data-price="<%= item.service.price * item.quantity %>"
+                                                   data-unit-price="<%= item.service.price %>"
+                                                   data-service-id="<%= item.service._id %>"
+                                                   data-event-date="<%= item.eventDate %>">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-2">
+                                        <% let imgSrc = (item.service.images && item.service.images.length > 0) ? item.service.images[0] : '/uploads/default-service.jpg'; %>
+                                        <img src="<%= imgSrc %>" alt="Ảnh dịch vụ" class="img-fluid rounded" style="max-height:80px;object-fit:cover;">
+                                    </div>
+                                    <div class="col-md-5">
                                         <h5 class="card-title mb-1"><%= item.service.title %></h5>
                                         <p class="text-muted mb-1"><%= item.service.shop.shopName %></p>
-                                        <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-center mb-1">
                                             <div class="text-warning me-2">
                                                 <% for(let i = 0; i < 5; i++) { %>
                                                     <i class="fas fa-star <%= i < Math.floor(item.service.rating || 0) ? '' : 'text-muted' %>"></i>
@@ -122,12 +121,17 @@
                                             </div>
                                             <small class="text-muted">(<%= item.service.totalReviews || 0 %> đánh giá)</small>
                                         </div>
+                                        <div class="mb-1"><strong>Ngày sự kiện:</strong> <%= item.eventDate ? item.eventDate : 'Chưa chọn' %></div>
+                                        <div class="mb-1"><strong>Địa điểm:</strong> <%= item.eventLocation ? item.eventLocation : 'Chưa nhập' %></div>
+                                        <% if (item.notes) { %><div class="mb-1"><strong>Ghi chú:</strong> <%= item.notes %></div><% } %>
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">Số lượng</label>
-                         <input type="number" class="form-control quantity-input" 
-                             value="<%= item.quantity %>" min="1" 
-                             data-index="<%= index %>">
+                                        <input type="number" class="form-control quantity-input" 
+                                            value="<%= item.quantity %>" min="1" 
+                                            data-service-id="<%= item.service._id %>" 
+                                            data-event-date="<%= item.eventDate %>" 
+                                            data-index="<%= index %>">
                                     </div>
                                     <div class="col-md-2 text-end">
                                         <div class="h5 text-primary mb-1"><%= (item.service.price * item.quantity).toLocaleString() %> VNĐ</div>
@@ -150,6 +154,17 @@
                             </div>
                         </div>
                     <% }) %>
+                    
+                    <!-- Select all controls -->
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll" checked>
+                            <label class="form-check-label fw-bold" for="selectAll">
+                                Chọn tất cả / Bỏ chọn tất cả
+                            </label>
+                        </div>
+                        <small class="text-muted">Chỉ những dịch vụ được chọn sẽ được thanh toán</small>
+                    </div>
                 </div>
 
                 <!-- Order Summary -->
@@ -176,11 +191,17 @@
                                 <strong>Tổng cộng:</strong>
                                 <strong id="total"><%= cart.reduce((sum, item) => sum + (item.service.price * item.quantity), 0).toLocaleString() %> VNĐ</strong>
                             </div>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <span id="selectedCount"><%= cart.length %></span> dịch vụ được chọn
+                                </small>
+                            </div>
 
                             <div class="d-grid gap-2">
-                                <a href="/customer/checkout" class="btn btn-light btn-lg">
-                                    <i class="fas fa-credit-card me-2"></i>Thanh toán
-                                </a>
+                                <button id="checkoutSelected" class="btn btn-light btn-lg">
+                                    <i class="fas fa-credit-card me-2"></i>Thanh toán dịch vụ đã chọn
+                                </button>
                                 <a href="/customer/services" class="btn btn-outline-light">
                                     <i class="fas fa-plus me-2"></i>Tiếp tục mua sắm
                                 </a>
@@ -213,25 +234,161 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function updateQuantity(index, newQuantity) {
-            if (newQuantity < 1) {
-                document.querySelectorAll('.quantity-input')[index].value = 1;
-                return;
+        document.addEventListener('DOMContentLoaded', function () {
+            // Xử lý checkbox chọn dịch vụ
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const subtotalElement = document.getElementById('subtotal');
+            const totalElement = document.getElementById('total');
+            const selectedCountElement = document.getElementById('selectedCount');
+            const checkoutBtn = document.getElementById('checkoutSelected');
+            
+            // Cập nhật tổng tiền khi thay đổi checkbox
+            function updateTotal() {
+                let selectedTotal = 0;
+                let selectedCount = 0;
+                
+                itemCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selectedTotal += parseFloat(checkbox.dataset.price);
+                        selectedCount++;
+                    }
+                });
+                
+                subtotalElement.textContent = selectedTotal.toLocaleString() + ' VNĐ';
+                totalElement.textContent = selectedTotal.toLocaleString() + ' VNĐ';
+                selectedCountElement.textContent = selectedCount;
+                
+                // Disable checkout button if no items selected
+                checkoutBtn.disabled = selectedCount === 0;
+                if (selectedCount === 0) {
+                    checkoutBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Chọn dịch vụ để thanh toán';
+                } else {
+                    checkoutBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Thanh toán ' + selectedCount + ' dịch vụ đã chọn';
+                }
             }
             
-            // Update cart in session (this would need a proper API endpoint)
-            // For now, just update the display
-            location.reload();
-        }
-
-        // Attach listeners to quantity inputs (avoid inline EJS in attributes)
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.quantity-input').forEach(function(inp) {
-                inp.addEventListener('change', function(e) {
-                    const idx = inp.dataset.index;
-                    updateQuantity(idx, e.target.value);
+            // Xử lý checkbox select all
+            selectAllCheckbox.addEventListener('change', function() {
+                itemCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateTotal();
+            });
+            
+            // Xử lý checkbox từng item
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateTotal();
+                    // Cập nhật select all
+                    const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+                    const someChecked = Array.from(itemCheckboxes).some(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
                 });
             });
+            
+            // Xử lý nút thanh toán
+            checkoutBtn.addEventListener('click', async function() {
+                const selectedItems = Array.from(itemCheckboxes).filter(cb => cb.checked);
+                if (selectedItems.length === 0) {
+                    alert('Vui lòng chọn ít nhất một dịch vụ để thanh toán');
+                    return;
+                }
+                
+                try {
+                    // Show loading
+                    checkoutBtn.disabled = true;
+                    checkoutBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+                    
+                    // Chuẩn bị dữ liệu thanh toán
+                    const selectedData = selectedItems.map(cb => {
+                        const cartItem = cb.closest('.cart-item');
+                        const serviceName = cartItem.querySelector('h5').textContent.trim();
+                        const servicePrice = parseFloat(cb.dataset.unitPrice) || 0;
+                        const serviceQuantity = parseInt(cartItem.querySelector('.quantity-input').value) || 1;
+                        const serviceImage = cartItem.querySelector('img').src;
+                        
+                        return {
+                            serviceId: cb.dataset.serviceId,
+                            eventDate: cb.dataset.eventDate, // Đã có từ khi thêm vào giỏ
+                            name: serviceName,
+                            price: servicePrice,
+                            quantity: serviceQuantity,
+                            image: serviceImage
+                        };
+                    });
+                    
+                    console.log('Sending payment data:', selectedData);
+                    
+                    // Gửi thanh toán trực tiếp (không cần nhập thông tin thêm)
+                    const response = await fetch('/customer/payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            selectedItems: selectedData
+                        }),
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('HTTP error! status: ' + response.status);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.paymentUrl) {
+                        // Chuyển đến VNPay
+                        window.location.href = result.paymentUrl;
+                    } else if (result.success && result.paymentUrls) {
+                        // Nhiều đơn hàng, chuyển đến URL đầu tiên
+                        window.location.href = result.paymentUrls[0];
+                    } else {
+                        alert('Lỗi: ' + (result.error || 'Không thể tạo đơn hàng'));
+                    }
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi thanh toán. Vui lòng thử lại.');
+                } finally {
+                    // Reset button
+                    checkoutBtn.disabled = false;
+                    checkoutBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Thanh toán đã chọn';
+                }
+            });
+
+            // AJAX cập nhật số lượng
+            document.querySelectorAll('.quantity-input').forEach(function(inp) {
+                inp.addEventListener('change', function(e) {
+                    let newQuantity = parseInt(inp.value);
+                    if (isNaN(newQuantity) || newQuantity < 1) {
+                        inp.value = 1;
+                        newQuantity = 1;
+                    }
+                    const serviceId = inp.dataset.serviceId;
+                    const eventDate = inp.dataset.eventDate;
+                    fetch('/customer/cart/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ serviceId, eventDate, quantity: newQuantity })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.message || 'Lỗi cập nhật số lượng');
+                        }
+                    })
+                    .catch(() => alert('Lỗi kết nối máy chủ!'));
+                });
+            });
+            
+            // Khởi tạo tổng tiền ban đầu
+            updateTotal();
         });
     </script>
 </body>
