@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
-    // Add loading state to forms
-    const forms = document.querySelectorAll('form');
+    // Add loading state to forms (không áp dụng cho cart forms và service detail)
+    const forms = document.querySelectorAll('form:not([action*="/cart/add"]):not(#addToCartForm):not([id="addToCartForm"])');
     forms.forEach(form => {
         form.addEventListener('submit', function() {
             const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
+            if (submitBtn && !submitBtn.id.includes('addToCart')) {
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<span class="loading"></span> Đang xử lý...';
                 submitBtn.disabled = true;
@@ -65,11 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
     addToCartForms.forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const formData = new FormData(this);
             const serviceId = formData.get('serviceId');
             const quantity = formData.get('quantity');
-            
             // Add to cart via AJAX
             fetch('/customer/cart/add', {
                 method: 'POST',
@@ -90,6 +88,30 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error:', error);
                 showNotification('Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+            });
+        });
+    });
+
+    // Xử lý xóa item khỏi giỏ hàng (gửi eventDate nếu có)
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form[action="/customer/cart/remove"]').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                const eventDateInput = form.closest('.cart-item')?.querySelector('.quantity-input');
+                if (eventDateInput) {
+                    let eventDate = eventDateInput.dataset.eventDate;
+                    if (eventDate) {
+                        // Thêm input ẩn eventDate nếu chưa có
+                        if (!form.querySelector('input[name="eventDate"]')) {
+                            let hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = 'eventDate';
+                            hidden.value = eventDate;
+                            form.appendChild(hidden);
+                        }
+                    }
+                }
+                // Sau khi submit, cập nhật cart count sau 1s
+                setTimeout(updateCartCount, 1000);
             });
         });
     });

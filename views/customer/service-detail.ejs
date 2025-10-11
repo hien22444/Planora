@@ -264,7 +264,7 @@
                                     <textarea class="form-control" id="notes" rows="3" placeholder="Ghi chú thêm về dịch vụ"></textarea>
                                 </div>
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-lg">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="addToCartBtn">
                                         <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
                                     </button>
                                     <a href="/customer/services" class="btn btn-outline-secondary">
@@ -318,7 +318,7 @@
             thumbnail.classList.add('active');
         }
 
-        // 🛒 Gửi form thêm vào giỏ hàng
+        // 🛒 Gửi form thêm vào giỏ hàng (không có loading để thêm liên tục)
         const addForm = document.getElementById('addToCartForm');
         if (addForm) {
             addForm.addEventListener('submit', async (e) => {
@@ -338,8 +338,30 @@
                 });
 
                 const data = await res.json();
-                alert(data.success ? '✅ Đã thêm vào giỏ hàng!' : '❌ Lỗi: ' + (data.message || 'Không thể thêm.'));
+                if (data.success) {
+                    // Không disable button, chỉ hiện thông báo ngắn
+                    showQuickNotification('✅ Đã thêm vào giỏ hàng!');
+                    // Reset form để thêm tiếp
+                    document.getElementById('quantity').value = 1;
+                    document.getElementById('notes').value = '';
+                } else {
+                    alert('❌ Lỗi: ' + (data.message || 'Không thể thêm.'));
+                }
             });
+        }
+
+        // Hiển thị thông báo nhanh không block UI
+        function showQuickNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 9999;
+                background: #28a745; color: white; padding: 10px 20px;
+                border-radius: 5px; font-weight: bold;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
         }
     </script>
 </body>

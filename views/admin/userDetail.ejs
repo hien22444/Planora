@@ -1,0 +1,30 @@
+<!-- views/admin/userDetail.ejs -->
+<% if (!user) { %>
+  <div class="container mt-4">
+    <div class="alert alert-danger">Không tìm thấy người dùng.</div>
+  </div>
+<% } else { %>
+  <div class="container mt-4">
+    <h3>Chi tiết người dùng</h3>
+    <table class="table table-bordered w-50 mt-3">
+      <tr><th>ID</th><td><%= user._id %></td></tr>
+      <tr><th>Họ tên</th><td><%= user.fullName %></td></tr>
+      <tr><th>Email</th><td><%= user.email %></td></tr>
+      <tr><th>Vai trò</th><td><%= user.role %></td></tr>
+      <tr><th>Trạng thái</th><td><%= user.isActive ? 'Hoạt động' : 'Bị khóa' %></td></tr>
+      <tr><th>Ngày tạo</th><td><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td></tr>
+      <% if (user.role === 'shop') { %>
+        <tr><th>Tên shop</th><td><%= user.shopName %></td></tr>
+        <tr><th>Email shop</th><td><%= user.shopEmail %></td></tr>
+        <tr><th>Địa chỉ shop</th><td><%= user.shopAddress %></td></tr>
+        <tr><th>Điện thoại shop</th><td><%= user.shopPhone %></td></tr>
+      <% } %>
+    </table>
+    <a href="/admin/users" class="btn btn-secondary">Quay lại danh sách</a>
+    <form action="/admin/users/<%= user._id %>/toggle-status" method="post" class="d-inline ms-2" onsubmit="return confirm('Xác nhận thay đổi trạng thái người dùng này?');">
+      <button type="submit" class="btn <%= user.isActive ? 'btn-danger' : 'btn-success' %>">
+        <%= user.isActive ? 'Khóa' : 'Kích hoạt' %>
+      </button>
+    </form>
+  </div>
+<% } %>

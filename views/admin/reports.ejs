@@ -1,57 +1,412 @@
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title mb-4">
+                <i class="fas fa-chart-line me-2"></i>Báo cáo & Thống kê
+            </h2>
+        </div>
+    </div>
 
-<div class="report-management">
-  <h2 style="margin-bottom:18px;"><i class="fa fa-chart-line"></i> Báo cáo & Thống kê</h2>
-  <div class="report-summary" style="margin-bottom:24px;">
-    <h3>Doanh thu nền tảng: 22,500,000 VNĐ</h3>
-    <h4>Dịch vụ thuê nhiều nhất: Dịch vụ 1</h4>
-    <h4>Khách hàng mới: 120</h4>
-    <h4>Khách hàng quay lại: 45</h4>
-  </div>
-  <form method="POST" action="#" style="margin-bottom:24px;display:flex;gap:10px;">
-    <select name="type" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;">
-      <option value="excel">Xuất Excel</option>
-      <option value="pdf">Xuất PDF</option>
-    </select>
-    <button type="submit" style="padding:8px 18px;border-radius:8px;background:#3b5998;color:#fff;border:none;">Xuất báo cáo</button>
-  </form>
-  <div class="report-charts">
-    <canvas id="shopRevenueChart" style="max-width:100%;height:220px;background:#fff;border-radius:12px;"></canvas>
-    <canvas id="serviceChart" style="max-width:100%;height:220px;background:#fff;border-radius:12px;margin-top:24px;"></canvas>
-  </div>
+    <!-- Thẻ thống kê -->
+    <div class="row mb-4">
+        <!-- Doanh thu tháng này -->
+        <div class="col-md-4">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Doanh thu tháng này</h5>
+                    <h2 class="display-4 mb-3">
+                        <%= revenueComparison.thisMonth.total.toLocaleString() %> ₫
+                    </h2>
+                    <p class="mb-0">
+                        <% const revenueChange = ((revenueComparison.thisMonth.total - revenueComparison.lastMonth.total) / revenueComparison.lastMonth.total * 100).toFixed(1) %>
+                        <span class="<%= revenueChange >= 0 ? 'text-success' : 'text-danger' %>">
+                            <i class="fas <%= revenueChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' %>"></i>
+                            <%= Math.abs(revenueChange) %>%
+                        </span>
+                        so với tháng trước
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Số đơn hàng -->
+        <div class="col-md-4">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Đơn hàng tháng này</h5>
+                    <h2 class="display-4 mb-3"><%= revenueComparison.thisMonth.count %></h2>
+                    <p class="mb-0">
+                        <% const orderChange = ((revenueComparison.thisMonth.count - revenueComparison.lastMonth.count) / revenueComparison.lastMonth.count * 100).toFixed(1) %>
+                        <span class="<%= orderChange >= 0 ? 'text-light' : 'text-danger' %>">
+                            <i class="fas <%= orderChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' %>"></i>
+                            <%= Math.abs(orderChange) %>%
+                        </span>
+                        so với tháng trước
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Người dùng -->
+        <div class="col-md-4">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Người dùng mới tháng này</h5>
+                    <h2 class="display-4 mb-3"><%= userMetrics.newUsers %></h2>
+                    <p class="mb-0">
+                        <span class="badge bg-light text-dark me-2">
+                            <%= Math.round(userMetrics.activeUsers/userMetrics.totalUsers*100) %>% hoạt động
+                        </span>
+                        Tổng số: <%= userMetrics.totalUsers %> người dùng
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ doanh thu và đơn hàng -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Doanh thu và đơn hàng 6 tháng gần nhất</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="viewRevenue">Doanh thu</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="viewOrders">Đơn hàng</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Trạng thái đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="orderStatusChart" height="250"></canvas>
+                    <div class="mt-3">
+                        <% orderStatusStats.forEach(stat => { %>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted"><%= stat._id %></span>
+                            <span class="badge bg-primary"><%= stat.count %> đơn</span>
+                        </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Shops và Services -->
+    <div class="row mb-4">
+        <!-- Top Shops -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top 5 Shop doanh thu cao nhất</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="shopChart" height="250"></canvas>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Shop</th>
+                                    <th>Doanh thu</th>
+                                    <th>Số đơn</th>
+                                    <th>TB/Đơn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% topShops.forEach(shop => { %>
+                                <tr>
+                                    <td><%= shop.shopName %></td>
+                                    <td><%= shop.totalRevenue.toLocaleString() %>₫</td>
+                                    <td><%= shop.orderCount %></td>
+                                    <td><%= Math.round(shop.averageOrder).toLocaleString() %>₫</td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Services -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top 5 Dịch vụ được thuê nhiều nhất</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="serviceChart" height="250"></canvas>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Dịch vụ</th>
+                                    <th>Số lượt thuê</th>
+                                    <th>Doanh thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% topServices.forEach(service => { %>
+                                <tr>
+                                    <td><%= service.serviceName %></td>
+                                    <td><%= service.totalQuantity %></td>
+                                    <td><%= service.totalRevenue.toLocaleString() %>₫</td>
+                                </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê người dùng và nút xuất báo cáo -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Phân bố người dùng theo vai trò</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="userRolesChart" height="200"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mt-4">
+                                <% userMetrics.roleDistribution.forEach(role => { %>
+                                <div class="d-flex justify-content-between align-items-center mb
+
+                -2">
+                                    <%= (role.count / userMetrics.totalUsers * 100).toFixed(1) %>%
+                                    <span class="badge bg-info"><%= role.count %></span>
+                                </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Xuất báo cáo</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/reports/export">
+                        <div class="mb-3">
+                            <label class="form-label">Định dạng</label>
+                            <select name="format" class="form-select">
+                                <option value="excel">Excel (.xlsx)</option>
+                                <option value="pdf">PDF</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-download me-1"></i>Xuất báo cáo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Demo dữ liệu biểu đồ
-  const shopRevenueLabels = ['Shop ABC', 'Shop XYZ', 'Shop QWE'];
-  const shopRevenueData = [12000000, 8500000, 2500000];
-  const serviceLabels = ['Dịch vụ 1', 'Dịch vụ 2', 'Dịch vụ 3'];
-  const serviceData = [80, 45, 30];
 
-  const shopRevenueCtx = document.getElementById('shopRevenueChart').getContext('2d');
-  new Chart(shopRevenueCtx, {
+<!-- Chart Data -->
+<script type="application/json" id="chartData">
+<%- JSON.stringify({
+  revenue: revenueChartData,
+  orderStatus: orderStatusStats,
+  topShops: topShops,
+  topServices: topServices,
+  userRoles: userMetrics.roleDistribution
+}) %>
+</script>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Chart Initialization -->
+<script>
+const chartData = JSON.parse(document.getElementById('chartData').textContent);
+// Format số tiền VND
+const formatVND = (value) => new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+}).format(value);
+
+// Biểu đồ doanh thu
+const revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels: chartData.revenue.labels,
+        datasets: [{
+            label: 'Doanh thu',
+            data: chartData.revenue.data,
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            yAxisID: 'y'
+        }, {
+            label: 'Số đơn hàng',
+            data: chartData.revenue.orderCounts,
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                ticks: {
+                    callback: value => formatVND(value)
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false
+                }
+            }
+        }
+    }
+});
+
+// Biểu đồ trạng thái đơn hàng
+const orderStatusChart = new Chart(document.getElementById('orderStatusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: chartData.orderStatus.map(s => s._id),
+        datasets: [{
+            data: chartData.orderStatus.map(s => s.count),
+            backgroundColor: [
+                'rgb(75, 192, 192)',
+                'rgb(255, 99, 132)',
+                'rgb(255, 205, 86)',
+                'rgb(54, 162, 235)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Biểu đồ top shops
+const shopChart = new Chart(document.getElementById('shopChart'), {
     type: 'bar',
     data: {
-      labels: shopRevenueLabels,
-      datasets: [{
-        label: 'Doanh thu Shop',
-        data: shopRevenueData,
-        backgroundColor: 'rgba(54,162,235,0.5)',
-        borderColor: 'blue',
-        borderWidth: 1
-      }]
+        labels: chartData.topShops.map(s => s.shopName),
+        datasets: [{
+            label: 'Doanh thu',
+            data: chartData.topShops.map(s => s.totalRevenue),
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: value => formatVND(value)
+                }
+            }
+        }
     }
-  });
+});
 
-  const serviceCtx = document.getElementById('serviceChart').getContext('2d');
-  new Chart(serviceCtx, {
+// Biểu đồ top dịch vụ
+const serviceChart = new Chart(document.getElementById('serviceChart'), {
     type: 'pie',
     data: {
-      labels: serviceLabels,
-      datasets: [{
-        label: 'Dịch vụ thuê nhiều',
-        data: serviceData,
-        backgroundColor: ['#ff9800','#3b5998','#5bc0de'],
-      }]
+        labels: chartData.topServices.map(s => s.serviceName),
+        datasets: [{
+            data: chartData.topServices.map(s => s.totalQuantity),
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)', 
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)',
+                'rgb(153, 102, 255)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'right'
+            }
+        }
     }
-  });
+});
+
+// Biểu đồ phân bố người dùng
+const userRolesChart = new Chart(document.getElementById('userRolesChart'), {
+    type: 'pie',
+    data: {
+        labels: chartData.userRoles.map(r => r._id),
+        datasets: [{
+            data: chartData.userRoles.map(r => r.count),
+            backgroundColor: [
+                'rgb(75, 192, 192)',
+                'rgb(255, 99, 132)',
+                'rgb(255, 205, 86)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'right'
+            }
+        }
+    }
+});
+
+// Toggle hiển thị doanh thu/đơn hàng
+document.getElementById('viewRevenue').addEventListener('click', () => {
+    revenueChart.data.datasets[1].hidden = true;
+    revenueChart.data.datasets[0].hidden = false;
+    revenueChart.update();
+});
+
+document.getElementById('viewOrders').addEventListener('click', () => {
+    revenueChart.data.datasets[0].hidden = true;
+    revenueChart.data.datasets[1].hidden = false;
+    revenueChart.update();
+});
+</script>
 </script>
