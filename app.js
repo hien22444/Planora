@@ -140,7 +140,8 @@ app.get("/", (req, res) => {
       return res.redirect("/customer/dashboard");
     }
   }
-  res.redirect("/auth/login");
+  // Redirect đến customer/dashboard thay vì login page
+  res.redirect("/customer/dashboard");
 });
 
 // Legacy route redirects

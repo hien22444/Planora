@@ -103,8 +103,8 @@ router.get('/services/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Dashboard khách hàng
-router.get('/dashboard', requireAuth, async (req, res) => {
+// Dashboard khách hàng - Không yêu cầu đăng nhập
+router.get('/dashboard', async (req, res) => {
   try {
     console.log('Customer dashboard - User:', req.user ? req.user.fullName : 'Not logged in');
     console.log('Customer dashboard - Role:', req.user ? req.user.role : 'No role');
@@ -121,12 +121,15 @@ router.get('/dashboard', requireAuth, async (req, res) => {
 
     console.log('Dashboard - loaded categories:', categories.length, 'services:', services.length);
 
-    // Lấy đơn hàng gần đây
-    const recentOrders = await Order.find({ customer: req.user._id })
-      .populate('shop', 'shopName')
-      .populate('services.service', 'name')
-      .sort({ createdAt: -1 })
-      .limit(5);
+    // Lấy đơn hàng gần đây (chỉ khi đã đăng nhập)
+    let recentOrders = [];
+    if (req.user) {
+      recentOrders = await Order.find({ customer: req.user._id })
+        .populate('shop', 'shopName')
+        .populate('services.service', 'name')
+        .sort({ createdAt: -1 })
+        .limit(5);
+    }
 
     res.render('customer/dashboard', {
       title: 'Thuê dịch vụ sự kiện',
