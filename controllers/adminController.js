@@ -29,6 +29,15 @@ const Service = require("../models/Service");
 const Order = require("../models/Order");
 const Review = require("../models/Review");
 
+// Error handling middleware
+const handleError = (err, req, res, next) => {
+  if (err.code === "EBADCSRFTOKEN") {
+    req.flash("error", "Lỗi bảo mật: Token không hợp lệ. Vui lòng thử lại.");
+    return res.redirect("back");
+  }
+  next(err);
+};
+
 exports.dashboard = async (req, res) => {
   try {
     // Thống kê tổng quan
@@ -67,20 +76,34 @@ exports.dashboard = async (req, res) => {
     }
 
     // KPIs: doanh thu hôm nay/tháng, đơn chờ xử lý, chờ thanh toán
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const startOfMonth = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      1
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
     );
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const todayPaidOrders = await Order.find({
       paymentStatus: "paid",
-      createdAt: { $gte: startOfToday },
+      status: { $nin: ["cancelled", "refunded"] },
+      createdAt: {
+        $gte: startOfToday,
+        $lte: endOfToday,
+      },
     });
     const monthPaidOrders = await Order.find({
       paymentStatus: "paid",
+      status: { $nin: ["cancelled", "refunded"] },
       createdAt: { $gte: startOfMonth },
     });
     const revenueToday = todayPaidOrders.reduce(
@@ -533,11 +556,20 @@ exports.reports = async (req, res) => {
   try {
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
     // Doanh thu theo thời gian (6 tháng gần nhất)
     const revenueStats = await Order.aggregate([
-      { $match: { paymentStatus: "paid" } },
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(now.getFullYear(), now.getMonth() - 5, 1),
+          }, // Last 6 months
+          paymentStatus: "paid",
+          status: { $nin: ["cancelled", "refunded"] },
+        },
+      },
       {
         $group: {
           _id: {
@@ -549,7 +581,6 @@ exports.reports = async (req, res) => {
         },
       },
       { $sort: { "_id.year": -1, "_id.month": -1 } },
-      { $limit: 6 },
     ]);
 
     // Format dữ liệu cho biểu đồ doanh thu
@@ -676,15 +707,29 @@ exports.reports = async (req, res) => {
       roleDistribution: userStats[0].roleDistribution || [],
     };
 
-    // Doanh thu tháng này và so sánh
+    // Calculate revenue comparison for current and last month
+    const currentMonthStats = revenueStats.find(
+      (stat) =>
+        stat._id.year === now.getFullYear() &&
+        stat._id.month === now.getMonth() + 1
+    ) || { total: 0, count: 0 };
+
+    const lastMonthStats = revenueStats.find((stat) => {
+      const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return (
+        stat._id.year === lastMonthDate.getFullYear() &&
+        stat._id.month === lastMonthDate.getMonth() + 1
+      );
+    }) || { total: 0, count: 0 };
+
     const revenueComparison = {
       thisMonth: {
-        total: revenueStats[0]?.total || 0,
-        count: revenueStats[0]?.count || 0,
+        total: currentMonthStats.total || 0,
+        count: currentMonthStats.count || 0,
       },
       lastMonth: {
-        total: revenueStats[1]?.total || 0,
-        count: revenueStats[1]?.count || 0,
+        total: lastMonthStats.total || 0,
+        count: lastMonthStats.count || 0,
       },
     };
 

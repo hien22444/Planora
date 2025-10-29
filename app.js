@@ -50,6 +50,10 @@ connectDB();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Cookie Parser
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 // Session configuration
 app.use(
   session({
@@ -145,14 +149,26 @@ app.get("/", (req, res) => {
 });
 
 // Legacy route redirects
-app.get('/login', (req, res) => res.redirect('/auth/login'));
-app.get('/register', (req, res) => res.redirect('/auth/register'));
-app.get('/verify-email', (req, res) => res.redirect('/auth/verify-email' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '')));
-app.get('/forgot-password', (req, res) => res.redirect('/auth/forgot-password'));
-app.get('/reset-password', (req, res) => res.redirect('/auth/reset-password' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '')));
-app.post('/login', (req, res) => res.redirect('/auth/login'));
-app.post('/register', (req, res) => res.redirect('/auth/register'));
-app.post('/logout', (req, res) => res.redirect('/auth/logout'));
+app.get("/login", (req, res) => res.redirect("/auth/login"));
+app.get("/register", (req, res) => res.redirect("/auth/register"));
+app.get("/verify-email", (req, res) =>
+  res.redirect(
+    "/auth/verify-email" +
+      (req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "")
+  )
+);
+app.get("/forgot-password", (req, res) =>
+  res.redirect("/auth/forgot-password")
+);
+app.get("/reset-password", (req, res) =>
+  res.redirect(
+    "/auth/reset-password" +
+      (req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "")
+  )
+);
+app.post("/login", (req, res) => res.redirect("/auth/login"));
+app.post("/register", (req, res) => res.redirect("/auth/register"));
+app.post("/logout", (req, res) => res.redirect("/auth/logout"));
 
 // Auth routes
 app.use("/auth", authRoutes);

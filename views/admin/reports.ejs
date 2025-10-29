@@ -15,15 +15,33 @@
                 <div class="card-body">
                     <h5 class="card-title">Doanh thu tháng này</h5>
                     <h2 class="display-4 mb-3">
-                        <%= revenueComparison.thisMonth.total.toLocaleString() %> ₫
+                        <%= (revenueComparison.thisMonth.total || 0).toLocaleString() %> ₫
                     </h2>
                     <p class="mb-0">
-                        <% const revenueChange = ((revenueComparison.thisMonth.total - revenueComparison.lastMonth.total) / revenueComparison.lastMonth.total * 100).toFixed(1) %>
-                        <span class="<%= revenueChange >= 0 ? 'text-success' : 'text-danger' %>">
-                            <i class="fas <%= revenueChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' %>"></i>
-                            <%= Math.abs(revenueChange) %>%
-                        </span>
-                        so với tháng trước
+                        <% 
+                        let revenueChange = 0;
+                        let showComparison = true;
+                        
+                        const thisMonthTotal = revenueComparison.thisMonth.total || 0;
+                        const lastMonthTotal = revenueComparison.lastMonth.total || 0;
+
+                        if (lastMonthTotal === 0 && thisMonthTotal === 0) {
+                            showComparison = false;
+                        } else if (lastMonthTotal === 0 && thisMonthTotal > 0) {
+                            revenueChange = 100;
+                        } else if (lastMonthTotal > 0) {
+                            revenueChange = ((thisMonthTotal - lastMonthTotal) / lastMonthTotal * 100).toFixed(1);
+                        }
+                        %>
+                        <% if (showComparison) { %>
+                            <span class="<%= revenueChange >= 0 ? 'text-success' : 'text-danger' %>">
+                                <i class="fas <%= revenueChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' %>"></i>
+                                <%= Math.abs(revenueChange) %>%
+                            </span>
+                            so với tháng trước
+                        <% } else { %>
+                            <span class="text-muted"> </span>
+                        <% } %>
                     </p>
                 </div>
             </div>
@@ -34,14 +52,32 @@
             <div class="card bg-success text-white h-100">
                 <div class="card-body">
                     <h5 class="card-title">Đơn hàng tháng này</h5>
-                    <h2 class="display-4 mb-3"><%= revenueComparison.thisMonth.count %></h2>
+                    <h2 class="display-4 mb-3"><%= (revenueComparison.thisMonth.count || 0) %></h2>
                     <p class="mb-0">
-                        <% const orderChange = ((revenueComparison.thisMonth.count - revenueComparison.lastMonth.count) / revenueComparison.lastMonth.count * 100).toFixed(1) %>
-                        <span class="<%= orderChange >= 0 ? 'text-light' : 'text-danger' %>">
-                            <i class="fas <%= orderChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' %>"></i>
-                            <%= Math.abs(orderChange) %>%
-                        </span>
-                        so với tháng trước
+                        <% 
+                        let orderChange = 0;
+                        let showOrderComparison = true;
+                        
+                        const thisMonthCount = revenueComparison.thisMonth.count || 0;
+                        const lastMonthCount = revenueComparison.lastMonth.count || 0;
+
+                        if (lastMonthCount === 0 && thisMonthCount === 0) {
+                            showOrderComparison = false;
+                        } else if (lastMonthCount === 0 && thisMonthCount > 0) {
+                            orderChange = 100;
+                        } else if (lastMonthCount > 0) {
+                            orderChange = ((thisMonthCount - lastMonthCount) / lastMonthCount * 100).toFixed(1);
+                        }
+                        %>
+                        <% if (showOrderComparison) { %>
+                            <span class="<%= orderChange >= 0 ? 'text-light' : 'text-danger' %>">
+                                <i class="fas <%= orderChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' %>"></i>
+                                <%= Math.abs(orderChange) %>%
+                            </span>
+                            so với tháng trước
+                        <% } else { %>
+                            <span class="text-muted"> </span>
+                        <% } %>
                     </p>
                 </div>
             </div>
@@ -173,12 +209,14 @@
         </div>
     </div>
 
-    <!-- Thống kê người dùng và nút xuất báo cáo -->
+    <!-- Thống kê người dùng -->
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Phân bố người dùng theo vai trò</h5>
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Phân bố người dùng theo vai trò
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -186,40 +224,43 @@
                             <canvas id="userRolesChart" height="200"></canvas>
                         </div>
                         <div class="col-md-6">
-                            <div class="mt-4">
-                                <% userMetrics.roleDistribution.forEach(role => { %>
-                                <div class="d-flex justify-content-between align-items-center mb
-
-                -2">
-                                    <%= (role.count / userMetrics.totalUsers * 100).toFixed(1) %>%
-                                    <span class="badge bg-info"><%= role.count %></span>
+                            <div class="role-stats mt-4">
+                                <% 
+                                const roleColors = {
+                                    'customer': '#4bc0c0',
+                                    'shop': '#ff6384',
+                                    'admin': '#ffcd56'
+                                };
+                                userMetrics.roleDistribution.forEach(role => { 
+                                    const percentage = (role.count / userMetrics.totalUsers * 100).toFixed(1);
+                                    const color = roleColors[role._id] || '#36a2eb';
+                                %>
+                                <div class="role-item mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="role-name text-capitalize">
+                                            <i class="fas fa-circle me-2" style="color: <%= color %>"></i>
+                                            <%= role._id %>
+                                        </span>
+                                        <span class="role-count fw-bold">
+                                            <%= role.count %> người dùng
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: <%= percentage %>%; background-color: <%= color %>;" 
+                                             aria-valuenow="<%= percentage %>" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <div class="text-end mt-1">
+                                        <small class="text-muted"><%= percentage %>%</small>
+                                    </div>
                                 </div>
                                 <% }) %>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Xuất báo cáo</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="/admin/reports/export">
-                        <div class="mb-3">
-                            <label class="form-label">Định dạng</label>
-                            <select name="format" class="form-select">
-                                <option value="excel">Excel (.xlsx)</option>
-                                <option value="pdf">PDF</option>
-                                <option value="csv">CSV</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-download me-1"></i>Xuất báo cáo
-                        </button>
-                    </form>
                 </div>
             </div>
         </div>

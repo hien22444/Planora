@@ -102,11 +102,16 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">Trạng thái đơn hàng</h5>
                             <span class="badge status-badge bg-<%= order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : order.status === 'confirmed' ? 'info' : order.status === 'in_progress' ? 'primary' : 'danger' %>">
-                                <%= order.status === 'pending' ? 'Chờ xử lý' : 
-                                    order.status === 'confirmed' ? 'Đã xác nhận' :
-                                    order.status === 'in_progress' ? 'Đang xử lý' :
-                                    order.status === 'completed' ? 'Hoàn thành' : 
-                                    order.status === 'cancelled' ? 'Đã hủy' : order.status %>
+                                <%= 
+                                order.status === 'cancelled' && order.paymentStatus === 'refunded' ? 'Đã hủy - Đã hoàn tiền' :
+                                order.status === 'cancelled' ? 'Đã hủy' :
+                                order.status === 'pending' && order.paymentStatus === 'pending' ? 'Chờ thanh toán' :
+                                order.status === 'pending' && order.paymentStatus === 'paid' ? 'Đã thanh toán - Chờ xử lý' :
+                                order.status === 'confirmed' ? 'Đã xác nhận' :
+                                order.status === 'in_progress' ? 'Đang xử lý' :
+                                order.status === 'completed' ? 'Hoàn thành' : 
+                                order.status 
+                                %>
                             </span>
                         </div>
                     </div>
@@ -234,7 +239,7 @@
                 </div>
 
                 <!-- Payment Info -->
-                <div class="card detail-card mt-3">
+                <!-- <div class="card detail-card mt-3">
                     <div class="card-header">
                         <h5 class="mb-0">Thông tin thanh toán</h5>
                     </div>
@@ -250,7 +255,7 @@
                             </span>
                         </p>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>

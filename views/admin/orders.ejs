@@ -66,7 +66,7 @@
                         <th>Dịch vụ</th>
                         <th>Tổng tiền</th>
                         <th>Trạng thái</th>
-                        <th>Thanh toán</th>
+                        <!-- <th>Thanh toán</th> -->
                         <th>Ngày tạo</th>
                         <th>Thao tác</th>
                     </tr>
@@ -115,13 +115,13 @@
                                             order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy' %>
                                     </span>
                                 </td>
-                                <td>
+                                <!-- <td>
                                     <span class="badge bg-<%= order.paymentStatus === 'paid' ? 'success' : 
                                         order.paymentStatus === 'refunded' ? 'info' : 'warning' %>">
                                         <%= order.paymentStatus === 'pending' ? 'Chờ thanh toán' : 
                                             order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Đã hoàn tiền' %>
                                     </span>
-                                </td>
+                                </td> -->
                                 <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
                                 <td>
                                     <div class="btn-group" role="group">
